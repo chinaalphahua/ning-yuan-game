@@ -20,12 +20,10 @@ export type Question = {
   impactB: Impact;
 };
 
-// --- 宁愿：完整 100 题库 ---
+// --- 宁愿：回归 9 维度 - 完整 100 题库 ---
 export const questions: Question[] = [
-  
   // ==========================================
   // 第一乐章：肉身与世俗的博弈 (1-25)
-  // 主题：金钱、外貌、肉体、基础欲望
   // ==========================================
   {
     id: 1,
@@ -33,7 +31,7 @@ export const questions: Question[] = [
     optionA_text: "立即获得 1000 万现金，但你的身高永远缩短 15 厘米。",
     optionB_text: "保持现状，继续为生活奔波。",
     impactA: { 金钱: 10, 外貌: -8, 自我: -4 },
-    impactB: { 金钱: -2, 自我: 4 }
+    impactB: { 金钱: -2, 自由: -2, 自我: 4 }
   },
   {
     id: 2,
@@ -80,16 +78,16 @@ export const questions: Question[] = [
     question_title: "关于声音的交换。",
     optionA_text: "拥有天籁般的歌喉，代价是你平时说话会变得极其刺耳难听。",
     optionB_text: "声音平庸，但在人群中说话很舒服。",
-    impactA: { 外貌: 6, 权力: 4, 社交: -6 },
-    impactB: { 社交: 6, 外貌: -2 }
+    impactA: { 外貌: 6, 权力: 4, 情感: -6 },
+    impactB: { 情感: 6, 外貌: -2 }
   },
   {
     id: 8,
     question_title: "关于睡眠的异界。",
     optionA_text: "睡着后进入一个绝对快乐的清醒梦世界，代价是现实中你会变得极度嗜睡。",
     optionB_text: "清醒地活在现实，哪怕现实很无聊。",
-    impactA: { 自由: 8, 情感: 6, 现实: -10 },
-    impactB: { 现实: 8, 情感: -4 }
+    impactA: { 自由: 8, 情感: 6, 自我: -10 },
+    impactB: { 自我: 8, 情感: -4 }
   },
   {
     id: 9,
@@ -104,7 +102,7 @@ export const questions: Question[] = [
     question_title: "关于性感的诅咒。",
     optionA_text: "拥有极致的性吸引力，代价是你永远无法获得纯粹的友谊。",
     optionB_text: "做一个路人甲，拥有真诚的朋友。",
-    impactA: { 外貌: 10, 情感: -8, 社交: -6 },
+    impactA: { 外貌: 10, 情感: -8 },
     impactB: { 情感: 8, 外貌: -4 }
   },
   {
@@ -144,8 +142,8 @@ export const questions: Question[] = [
     question_title: "关于动物的低语。",
     optionA_text: "能听懂所有动物的语言，代价是你逐渐丧失人类语言的能力。",
     optionB_text: "留在人类社会，继续孤独地做万物之灵。",
-    impactA: { 智慧: 6, 自由: 8, 社交: -10 },
-    impactB: { 社交: 8, 自由: -4 }
+    impactA: { 智慧: 6, 自由: 8, 情感: -10 },
+    impactB: { 情感: 8, 自由: -4 }
   },
   {
     id: 16,
@@ -168,8 +166,8 @@ export const questions: Question[] = [
     question_title: "关于永不疲惫。",
     optionA_text: "肉体永远不需要休息，代价是你的精神时刻紧绷。",
     optionB_text: "会累会喘，但能享受瘫软在床上的松弛感。",
-    impactA: { 健康: 8, 效率: 10, 情感: -6 },
-    impactB: { 情感: 8, 效率: -6 }
+    impactA: { 健康: 8, 权力: 10, 情感: -6 },
+    impactB: { 情感: 8, 权力: -6 }
   },
   {
     id: 19,
@@ -230,14 +228,13 @@ export const questions: Question[] = [
 
   // ==========================================
   // 第二乐章：情感与关系的枷锁 (26-50)
-  // 主题：爱情、家庭、隐私、社会连接
   // ==========================================
   {
     id: 26,
     question_title: "关于透明的人生。",
     optionA_text: "你的智商提高 50 点，代价是你每天的私生活都会被直播给全世界看。",
     optionB_text: "保持现在的智商，拥有绝对的隐私。",
-    impactA: { 智慧: 10, 自由: -10, 自我: -6 },
+    impactA: { 智慧: 10, 自由: -10, 自心: -6 },
     impactB: { 自由: 10, 智慧: -2 }
   },
   {
@@ -253,8 +250,8 @@ export const questions: Question[] = [
     question_title: "关于被爱的幻觉。",
     optionA_text: "无论你做什么，这世界上都有一个人无条件地爱你，但他永远不会出现在你面前。",
     optionB_text: "身边充满了具体的人，但他们对你的爱都是有条件的。",
-    impactA: { 情感: 8, 自由: 6, 现实: -6 },
-    impactB: { 现实: 8, 情感: -4 }
+    impactA: { 情感: 8, 自由: 6, 自我: -6 },
+    impactB: { 自我: 8, 情感: -4 }
   },
   {
     id: 29,
@@ -301,16 +298,16 @@ export const questions: Question[] = [
     question_title: "关于唯一的听众。",
     optionA_text: "全世界都听不懂你的话，除了你的灵魂伴侣。",
     optionB_text: "全世界都懂你，但你找不到那个灵魂伴侣。",
-    impactA: { 情感: 10, 权力: -8, 社交: -8 },
-    impactB: { 社交: 8, 情感: -8 }
+    impactA: { 情感: 10, 权力: -8 },
+    impactB: { 情感: -8, 自由: 8 }
   },
   {
     id: 35,
     question_title: "关于秘密的交换。",
     optionA_text: "知道所有朋友的秘密，代价是你不能告诉任何人。",
     optionB_text: "对此一无所知，像个傻瓜一样快乐。",
-    impactA: { 智慧: 6, 心理: -8 },
-    impactB: { 心理: 8, 智慧: -4 }
+    impactA: { 智慧: 6, 健康: -8 },
+    impactB: { 健康: 8, 智慧: -4 }
   },
   {
     id: 36,
@@ -349,8 +346,8 @@ export const questions: Question[] = [
     question_title: "关于匿名后的恶。",
     optionA_text: "在网络上拥有绝对的匿名权，无论说什么都不负责。",
     optionB_text: "实名上网，为你说的每一个字负责。",
-    impactA: { 自由: 10, 道德: -10 },
-    impactB: { 道德: 10, 自由: -6 }
+    impactA: { 自由: 10, 自我: -10 },
+    impactB: { 自我: 10, 自由: -6 }
   },
   {
     id: 41,
@@ -381,8 +378,8 @@ export const questions: Question[] = [
     question_title: "关于绝对的公平。",
     optionA_text: "世界变得绝对公平，代价是没有人再有特权保护你。",
     optionB_text: "世界不公，但你是受益的那一方。",
-    impactA: { 道德: 10, 金钱: -6 },
-    impactB: { 金钱: 8, 道德: -8 }
+    impactA: { 自我: 10, 金钱: -6 },
+    impactB: { 金钱: 8, 自我: -8 }
   },
   {
     id: 45,
@@ -435,7 +432,6 @@ export const questions: Question[] = [
 
   // ==========================================
   // 第三乐章：存在与自我的本质 (51-75)
-  // 主题：才华、记忆、真理、感知
   // ==========================================
   {
     id: 51,
@@ -512,10 +508,10 @@ export const questions: Question[] = [
   {
     id: 60,
     question_title: "关于对话古人。",
-    optionA_text: "能与逝去的智者（如苏格拉底）对话，代价是你被现代人视为疯子。",
+    optionA_text: "能与逝去的智者对话，代价是你被现代人视为疯子。",
     optionB_text: "做个正常人，和同事聊八卦。",
-    impactA: { 智慧: 10, 社交: -10 },
-    impactB: { 社交: 8, 智慧: -8 }
+    impactA: { 智慧: 10, 情感: -10 },
+    impactB: { 情感: 8, 智慧: -8 }
   },
   {
     id: 61,
@@ -562,8 +558,8 @@ export const questions: Question[] = [
     question_title: "关于交换性别。",
     optionA_text: "体验异性的人生，代价是你永远无法再变回来。",
     optionB_text: "安守本分，猜测另一种性别的感受。",
-    impactA: { 自由: 8, 身份: -6 },
-    impactB: { 身份: 8, 自由: -2 }
+    impactA: { 自由: 8, 自我: -6 },
+    impactB: { 自我: 8, 自由: -2 }
   },
   {
     id: 67,
@@ -586,22 +582,22 @@ export const questions: Question[] = [
     question_title: "关于灵魂的透明。",
     optionA_text: "你的灵魂在别人眼中是透明可见的，无法隐藏任何秘密。",
     optionB_text: "拥有一层厚厚的面具，没人知道你在想什么。",
-    impactA: { 情感: 8, 隐私: -10 },
-    impactB: { 隐私: 10, 情感: -6 }
+    impactA: { 情感: 8, 自由: -10 },
+    impactB: { 自由: 10, 情感: -6 }
   },
   {
     id: 70,
     question_title: "关于痛苦的转移。",
-    optionA_text: "你可以将身体的痛苦转移给别人，代价是你的灵魂会变黑。",
+    optionA_text: "可以将身体的痛苦转移给别人，代价是你的灵魂会变黑。",
     optionB_text: "独自忍受痛苦，保持灵魂的纯白。",
-    impactA: { 健康: 10, 道德: -10 },
-    impactB: { 道德: 10, 健康: -8 }
+    impactA: { 健康: 10, 自我: -10 },
+    impactB: { 自我: 10, 健康: -8 }
   },
   {
     id: 71,
     question_title: "关于最后的灯火。",
-    optionA_text: "作为文明最后的守护者，独自生活在黑暗的避难所，守护知识。",
-    optionB_text: "在末日的狂欢中与众人一起在瞬间湮灭，不带走任何记忆。",
+    optionA_text: "作为文明最后的守护者，独自生活在黑暗的避难所。",
+    optionB_text: "在末日的狂欢中与众人一起在瞬间湮灭。",
     impactA: { 智慧: 10, 权力: 6, 情感: -10, 家庭: -10 },
     impactB: { 情感: 8, 自由: 6, 智慧: -10 }
   },
@@ -640,7 +636,6 @@ export const questions: Question[] = [
 
   // ==========================================
   // 第四乐章：虚无、终局与无力感 (76-100)
-  // 主题：死亡、遗忘、历史、轮回
   // ==========================================
   {
     id: 76,
@@ -661,15 +656,15 @@ export const questions: Question[] = [
   {
     id: 78,
     question_title: "关于迟到的道歉。",
-    optionA_text: "回到过去说对不起，代价是对方会彻底忘记你，你也失去了修正现状的机会。",
+    optionA_text: "回到过去说对不起，代价是对方会彻底忘记你。",
     optionB_text: "带着这份永远无法弥补的愧疚，沉重地走完余生。",
     impactA: { 自我: 8, 情感: -6, 智慧: -4 },
-    impactB: { 智慧: 10, 自我: -8, 健康: -6 }
+    impactB: { 智慧: 10, 自重: -8, 健康: -6 }
   },
   {
     id: 79,
     question_title: "关于枯萎的美学。",
-    optionA_text: "在人生最高光的时刻瞬间离世，像樱花一样留下永恒的绝美瞬间。",
+    optionA_text: "在人生最高光的时刻瞬间离世，留下永恒的绝美瞬间。",
     optionB_text: "看着才华和美貌一点点枯萎，最终在衰老中无声无息地熄灭。",
     impactA: { 外貌: 10, 自我: 10, 健康: -10, 情感: -8 },
     impactB: { 健康: -6, 外貌: -10, 自我: -4, 智慧: 8 }
@@ -678,7 +673,7 @@ export const questions: Question[] = [
     id: 80,
     question_title: "关于影子的陪伴。",
     optionA_text: "化作一阵风或一朵云，看遍人间悲欢，却无法干预分毫。",
-    optionB_text: "作为一粒尘埃卷入时代的洪流，虽然会被碾碎，但你真实地存在过。",
+    optionB_text: "作为一粒尘埃卷入时代洪流，虽然会被碾碎，但你存在过。",
     impactA: { 自由: 10, 智慧: 6, 情感: -10, 健康: 10 },
     impactB: { 自我: 10, 健康: -10, 自由: -8, 情感: 4 }
   },
@@ -686,46 +681,46 @@ export const questions: Question[] = [
     id: 81,
     question_title: "关于轮回的记忆。",
     optionA_text: "带着前世的记忆重生，代价是你永远无法融入新的人生。",
-    optionB_text: "喝下孟婆汤，干干净净地重来，哪怕再次犯同样的错。",
-    impactA: { 智慧: 10, 孤独: 10, 情感: -8 },
+    optionB_text: "喝下孟婆汤，干干净净地重来。",
+    impactA: { 智慧: 10, 自我: -10, 情感: -8 },
     impactB: { 情感: 8, 智慧: -6 }
   },
   {
     id: 82,
     question_title: "关于唯一的幸存者。",
     optionA_text: "在一场灾难中独自存活，背负所有遇难者的期望。",
-    optionB_text: "与众人一同死去，免受幸存者愧疚的折磨。",
-    impactA: { 健康: 10, 心理: -10 },
-    impactB: { 心理: 10, 健康: -10 }
+    optionB_text: "与众人一同死去，免受灵魂折磨。",
+    impactA: { 健康: 10, 自我: -10 },
+    impactB: { 自我: 10, 健康: -10 }
   },
   {
     id: 83,
     question_title: "关于被铭记的方式。",
     optionA_text: "作为一个暴君被历史永远铭记。",
     optionB_text: "作为一个好人被历史彻底遗忘。",
-    impactA: { 权力: 10, 道德: -10 },
-    impactB: { 道德: 10, 权力: -10 }
+    impactA: { 权力: 10, 自我: -10 },
+    impactB: { 自我: 10, 权力: -10 }
   },
   {
     id: 84,
     question_title: "关于完美的句号。",
     optionA_text: "你可以选择自己死亡的方式和时间，精准控制离场。",
     optionB_text: "把死亡交给命运，哪怕它来得狼狈不堪。",
-    impactA: { 权力: 8, 自由: 10, 惊喜: -10 },
-    impactB: { 惊喜: 8, 权力: -6 }
+    impactA: { 权力: 8, 自由: 10, 情感: -10 },
+    impactB: { 自由: 8, 权力: -6 }
   },
   {
     id: 85,
     question_title: "关于无声的呐喊。",
     optionA_text: "你在世界上发出的声音没人能听见，但你的画作价值连城。",
     optionB_text: "你的画一文不值，但你的歌声能治愈千万人。",
-    impactA: { 金钱: 10, 社交: -10 },
-    impactB: { 社交: 10, 金钱: -8 }
+    impactA: { 金钱: 10, 情感: -10 },
+    impactB: { 情感: 10, 金钱: -8 }
   },
   {
     id: 86,
     question_title: "关于语言的尽头。",
-    optionA_text: "你的心意永远能被准确传达，代价是你从此无法感受到“共鸣”带来的惊喜。",
+    optionA_text: "你的心意永远能被准确传达，代价是你无法感受共鸣。",
     optionB_text: "一生都在试图向他人解释自己，却在无尽的误解中老去。",
     impactA: { 情感: 6, 家庭: 6, 智慧: -10, 自由: -4 },
     impactB: { 自我: 10, 智慧: 6, 情感: -10, 家庭: -6 }
@@ -734,7 +729,7 @@ export const questions: Question[] = [
     id: 87,
     question_title: "关于未竟的梦想。",
     optionA_text: "在死前那一刻得知你毕生追求的目标其实是个错误。",
-    optionB_text: "带着对那个错误目标的狂热信仰，一无所知地幸福死掉。",
+    optionB_text: "带着对那个错误目标的信仰，幸福死掉。",
     impactA: { 智慧: 10, 自我: -10, 情感: -8 },
     impactB: { 情感: 8, 智慧: -10, 自我: -4 }
   },
@@ -742,14 +737,14 @@ export const questions: Question[] = [
     id: 88,
     question_title: "关于冬天的太阳。",
     optionA_text: "经历过一次极致的爱情，代价是余下的 50 年都在孤独中回忆它。",
-    optionB_text: "一辈子过着微温、平淡、没有波澜也从无心动的日子。",
+    optionB_text: "一辈子过着平淡、从无心动的日子。",
     impactA: { 情感: 10, 自我: 6, 健康: -8, 智慧: 4 },
     impactB: { 健康: 8, 情感: -8, 智慧: -4 }
   },
   {
     id: 89,
     question_title: "关于夕阳下的奔跑。",
-    optionA_text: "明知徒劳，却依然倾尽所有去拯救一个注定会消失的东西。",
+    optionA_text: "明知徒劳，却依然倾尽所有去拯救注定消失的东西。",
     optionB_text: "理智地放弃，站在高处冷眼看着它化为灰烬。",
     impactA: { 自我: 10, 情感: 6, 健康: -8, 金钱: -10 },
     impactB: { 智慧: 10, 金钱: 8, 自我: -10, 情感: -8 }
@@ -757,8 +752,8 @@ export const questions: Question[] = [
   {
     id: 90,
     question_title: "关于存在的重量。",
-    optionA_text: "消失在所有人的记忆里，就像你从未在这个世界出现过一样。",
-    optionB_text: "留下一段被后人反复误读、曲解甚至羞辱的历史。",
+    optionA_text: "消失在所有人的记忆里，就像你从未在这个世界出现过。",
+    optionB_text: "留下一段被后人反复曲解甚至羞辱的历史。",
     impactA: { 自由: 10, 情感: -10, 自我: -10 },
     impactB: { 权力: 4, 智慧: 6, 自我: 10, 情感: -8 }
   },
@@ -766,14 +761,14 @@ export const questions: Question[] = [
     id: 91,
     question_title: "关于雨中的等待。",
     optionA_text: "为了一个永远不会回来的答案，在原地站成一座石像。",
-    optionB_text: "头也不回地走向未知的荒原，哪怕你根本不知道要去哪里。",
+    optionB_text: "头也不回地走向未知的荒原。",
     impactA: { 家庭: 6, 情感: 4, 自由: -10, 健康: -8 },
     impactB: { 自由: 10, 自我: 10, 家庭: -10, 情感: -6 }
   },
   {
     id: 92,
     question_title: "关于破碎的镜子。",
-    optionA_text: "修补好所有的关系，代价是你的灵魂充满了补丁，不再纯粹。",
+    optionA_text: "修补好所有的关系，代价是你的灵魂不再纯粹。",
     optionB_text: "守着你那洁净但支离破碎的孤独。",
     impactA: { 情感: 8, 家庭: 10, 自我: -10 },
     impactB: { 自我: 10, 家庭: -10, 情感: -8 }
@@ -781,8 +776,8 @@ export const questions: Question[] = [
   {
     id: 93,
     question_title: "关于最后一首歌。",
-    optionA_text: "唱出一首能让神灵落泪的歌，代价是唱完之后你将永久失聪且失声。",
-    optionB_text: "作为一个平庸的听众，在嘈杂的背景音里度过一生。",
+    optionA_text: "唱出一首能让神灵落泪的歌，代价是唱完之后你将失聪失声。",
+    optionB_text: "作为一个平庸的听众，在嘈杂中度过一生。",
     impactA: { 智慧: 10, 自我: 8, 健康: -10, 情感: -6 },
     impactB: { 健康: 6, 智慧: -6, 自我: -4 }
   },
@@ -790,54 +785,54 @@ export const questions: Question[] = [
     id: 94,
     question_title: "关于时间的尘埃。",
     optionA_text: "能看到数百年后你的坟墓前荒草凄凄的景象。",
-    optionB_text: "能看到你最恨的人在这一刻正享受着你梦寐以求的幸福。",
+    optionB_text: "能看到你最恨的人在这一刻正享受着幸福。",
     impactA: { 智慧: 10, 自由: 4, 情感: -6 },
     impactB: { 自我: -10, 情感: -8, 智慧: 6 }
   },
   {
     id: 95,
     question_title: "关于无力的救赎。",
-    optionA_text: "替全世界分担痛苦，但你自己必须承受叠加，且没人会感激你。",
-    optionB_text: "关上窗户，在自己的小房间里享受一份心安理得的下午茶。",
+    optionA_text: "替全世界分担痛苦，但你自己承受叠加且没人会感激你。",
+    optionB_text: "关上窗户，享受一份心安理得的下午茶。",
     impactA: { 自我: 10, 健康: -10, 情感: 10, 权力: -8 },
     impactB: { 健康: 8, 自我: -10, 情感: -6 }
   },
   {
     id: 96,
     question_title: "关于最后的灯塔。",
-    optionA_text: "你死后，你的思想才会被世界理解，但此时你已感知不到任何荣耀。",
-    optionB_text: "生前被所有人奉为神明，死后被揭穿只是一个美丽的骗局。",
+    optionA_text: "你死后，你的思想才会被世界理解。",
+    optionB_text: "生前被奉为神明，死后被揭穿只是个骗局。",
     impactA: { 智慧: 10, 权力: 6, 自我: 8, 情感: -10 },
     impactB: { 权力: 10, 金钱: 8, 自我: -10, 情感: -4 }
   },
   {
     id: 97,
     question_title: "关于灵魂的厚度。",
-    optionA_text: "拥有一颗如同赤子般脆弱、易碎但极其敏感的心。",
-    optionB_text: "拥有一颗如同钢铁般坚硬、冰冷、永远不会受伤的心。",
+    optionA_text: "拥有一颗脆弱、易碎但极其敏感的心。",
+    optionB_text: "拥有一颗坚硬、冰冷、永远不会受伤的心。",
     impactA: { 情感: 10, 智慧: 6, 健康: -8, 自我: 4 },
     impactB: { 健康: 10, 权力: 8, 情感: -10, 自我: -6 }
   },
   {
     id: 98,
     question_title: "关于终极的平庸。",
-    optionA_text: "承认自己只是 80 亿人中毫无特点的基数，从此获得彻底的解脱。",
-    optionB_text: "一生都在为了证明自己的特别而痛苦挣扎，直到死在终点线前。",
+    optionA_text: "承认自己只是 80 亿人中毫无特点的基数。",
+    optionB_text: "一生都在为了证明自己的特别而痛苦挣扎。",
     impactA: { 自由: 10, 健康: 8, 自我: -8, 智慧: 4 },
     impactB: { 自我: 10, 智慧: 8, 健康: -10, 自由: -6 }
   },
   {
     id: 99,
     question_title: "关于临终的宽恕。",
-    optionA_text: "宽恕那些从未向你道歉的仇人，代价是你的正义感从此土崩瓦解。",
-    optionB_text: "带着诅咒和恨意闭上眼睛，以此守住你最后的尊严。",
+    optionA_text: "宽恕那些从未向你道歉的仇人，代价是正义感土崩瓦解。",
+    optionB_text: "带着诅咒闭上眼睛，以此守住最后的尊严。",
     impactA: { 情感: 6, 自由: 8, 自我: -10 },
     impactB: { 自我: 10, 情感: -10, 健康: -6 }
   },
   {
     id: 100,
     question_title: "关于圆满。",
-    optionA_text: "带着现在的觉悟回到起点，但你注定要再次经历所有的失去，一次都不能少。",
+    optionA_text: "带着现在的觉悟回到起点，但注定要再次经历所有的失去。",
     optionB_text: "合上书本，让这一切在此时此刻，静静地终结。",
     impactA: { 智慧: 10, 自我: 8, 健康: -10, 自由: -10 },
     impactB: { 自由: 10, 智慧: 10, 健康: 10, 情感: 10, 权力: 10, 金钱: 10, 外貌: 10, 自我: 10, 家庭: 10 }
