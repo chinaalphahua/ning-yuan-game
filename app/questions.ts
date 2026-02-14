@@ -234,7 +234,7 @@ export const questions: Question[] = [
     question_title: "关于透明的人生。",
     optionA_text: "你的智商提高 50 点，代价是你每天的私生活都会被直播给全世界看。",
     optionB_text: "保持现在的智商，拥有绝对的隐私。",
-    impactA: { 智慧: 10, 自由: -10, 自心: -6 },
+    impactA: { 智慧: 10, 自由: -10, 自我: -6 },
     impactB: { 自由: 10, 智慧: -2 }
   },
   {
@@ -659,7 +659,7 @@ export const questions: Question[] = [
     optionA_text: "回到过去说对不起，代价是对方会彻底忘记你。",
     optionB_text: "带着这份永远无法弥补的愧疚，沉重地走完余生。",
     impactA: { 自我: 8, 情感: -6, 智慧: -4 },
-    impactB: { 智慧: 10, 自重: -8, 健康: -6 }
+    impactB: { 智慧: 10, 自我: -8, 健康: -6 }
   },
   {
     id: 79,
