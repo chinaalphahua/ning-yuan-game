@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   description: "极简哲学二选一游戏",
 };
 
+export const viewport = { viewportFit: "cover" as const };
+
 export default function RootLayout({
   children,
 }: Readonly<{

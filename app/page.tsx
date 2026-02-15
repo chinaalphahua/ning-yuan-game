@@ -39,6 +39,9 @@ const STAGE_TITLES: Record<string, { title: string; phrase: string }> = {
 
 const SAVE_KEY = "ningyuan_progress";
 
+/** 题目加减分强度系数，大于 1 时变化更剧烈 */
+const IMPACT_MULTIPLIER = 1.5;
+
 function getSacrificeRecap(
   impactHistory: Record<string, number>[]
 ): { for: string; sacrificed: string; count: number }[] {
@@ -140,15 +143,17 @@ export default function NingYuanGame() {
   const [stageTitle, setStageTitle] = useState("");
   const [stagePhrase, setStagePhrase] = useState("");
   const [whisperText, setWhisperText] = useState("");
-  const [shakeKey, setShakeKey] = useState(0);
   const [resonanceWhisper, setResonanceWhisper] = useState<{
     text: string;
     position: ResonancePosition;
   } | null>(null);
   const [showFinalReport, setShowFinalReport] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [showNoEditHint, setShowNoEditHint] = useState(false);
   const statsRef = useRef(stats);
   const prevTopAttrRef = useRef<string | null>(null);
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
+  const resonanceLastShownAtRef = useRef<number>(-999);
   statsRef.current = stats;
 
   useEffect(() => {
@@ -221,7 +226,6 @@ export default function NingYuanGame() {
     (choice: "A" | "B") => {
       if (selected || !currentQuestion) return;
       setSelected(choice);
-      setShakeKey((k) => k + 1);
       const impact: Impact =
         choice === "A" ? currentQuestion.impactA : currentQuestion.impactB;
       const keys = Object.keys(impact).filter(
@@ -233,9 +237,10 @@ export default function NingYuanGame() {
         Object.entries(impact) as [keyof Impact, number][]
       ).forEach(([key, value]) => {
         if (nextStats[key] !== undefined && value != null) {
+          const delta = Math.round(value * IMPACT_MULTIPLIER);
           nextStats[key] = Math.max(
             0,
-            Math.min(100, nextStats[key] + value)
+            Math.min(100, nextStats[key] + delta)
           );
         }
       });
@@ -255,12 +260,11 @@ export default function NingYuanGame() {
         (prevTopAttrRef.current === null && topVal > 60) ||
         (prevTopAttrRef.current !== null && prevTopAttrRef.current !== topAttr);
       prevTopAttrRef.current = topAttr;
-      const shouldTriggerByChange =
-        topChanged && topVal > 60 && RESONANCE_WHISPERS[topAttr];
-      const shouldTriggerBy80 =
-        topVal > 80 && RESONANCE_WHISPERS[topAttr];
-      const shouldTrigger = shouldTriggerByChange || shouldTriggerBy80;
+      const cooldownOk = currentIndex - resonanceLastShownAtRef.current >= 2;
+      const shouldTrigger =
+        topChanged && topVal > 60 && RESONANCE_WHISPERS[topAttr] && cooldownOk;
       if (shouldTrigger) {
+        resonanceLastShownAtRef.current = currentIndex;
         const pos =
           RESONANCE_POSITIONS[
             Math.floor(Math.random() * RESONANCE_POSITIONS.length)
@@ -329,6 +333,7 @@ export default function NingYuanGame() {
     } catch (_) {}
     impactHistoryRef.current = [];
     prevTopAttrRef.current = null;
+    resonanceLastShownAtRef.current = -999;
     setShowFinalReport(false);
     setQuestionOrder(shuffleOrder(questions.length));
     setCurrentIndex(0);
@@ -341,14 +346,50 @@ export default function NingYuanGame() {
 
   if (questionOrder === null) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-black">
-        <div className="h-6 w-6 animate-pulse rounded-full border border-white/20" />
-      </div>
+      <>
+        <div className="flex min-h-screen w-full items-center justify-center bg-black pb-[env(safe-area-inset-bottom)]">
+          <div className="h-6 w-6 animate-pulse rounded-full border border-white/20" />
+        </div>
+        <AnimatePresence>
+          {showIntro && (
+            <IntroModal
+              onClose={() => {
+                setShowIntro(false);
+                setShowNoEditHint(true);
+              }}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showNoEditHint && (
+            <NoEditHint onClose={() => setShowNoEditHint(false)} />
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
   if (!currentQuestion) {
-    return <div className="h-screen w-full bg-black" />;
+    return (
+      <>
+        <div className="min-h-screen w-full bg-black pb-[env(safe-area-inset-bottom)]" />
+        <AnimatePresence>
+          {showIntro && (
+            <IntroModal
+              onClose={() => {
+                setShowIntro(false);
+                setShowNoEditHint(true);
+              }}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showNoEditHint && (
+            <NoEditHint onClose={() => setShowNoEditHint(false)} />
+          )}
+        </AnimatePresence>
+      </>
+    );
   }
 
   if (showFinalReport) {
@@ -356,47 +397,61 @@ export default function NingYuanGame() {
     const meta = STAGE_TITLES[topAttr] ?? STAGE_TITLES["自我"];
     const recap = getSacrificeRecap(impactHistoryRef.current);
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white px-6">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-          终极镜像
-        </p>
-        <h1 className="mt-4 font-serif text-2xl tracking-wide text-white/95 md:text-3xl">
-          {meta.title}
-        </h1>
-        <div className="mt-8 h-40 w-40 shrink-0">
-          <SoulRadar stats={stats} className="h-full w-full" />
+      <>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
+            终极镜像
+          </p>
+          <h1 className="mt-4 font-serif text-xl tracking-wide text-white/95 text-balance md:text-2xl lg:text-3xl">
+            {meta.title}
+          </h1>
+          <div className="mt-8 h-40 w-40 shrink-0">
+            <SoulRadar stats={stats} className="h-full w-full" />
+          </div>
+          <div className="mt-6 max-w-sm space-y-2 text-center text-sm leading-relaxed text-zinc-400">
+            {recap.length > 0 ? (
+              recap.map((r) => (
+                <p key={`${r.for}-${r.sacrificed}`}>
+                  你为了{r.for}牺牲了{r.sacrificed} {r.count} 次。
+                </p>
+              ))
+            ) : (
+              <p>你的灵魂画像已定。</p>
+            )}
+          </div>
+          <motion.button
+            type="button"
+            onClick={restart}
+            className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+            whileTap={{ scale: 0.98 }}
+          >
+            重启轮回
+          </motion.button>
         </div>
-        <div className="mt-6 max-w-sm space-y-2 text-center text-sm leading-relaxed text-zinc-400">
-          {recap.length > 0 ? (
-            recap.map((r) => (
-              <p key={`${r.for}-${r.sacrificed}`}>
-                你为了{r.for}牺牲了{r.sacrificed} {r.count} 次。
-              </p>
-            ))
-          ) : (
-            <p>你的灵魂画像已定。</p>
+        <AnimatePresence>
+          {showIntro && (
+            <IntroModal
+              onClose={() => {
+                setShowIntro(false);
+                setShowNoEditHint(true);
+              }}
+            />
           )}
-        </div>
-        <motion.button
-          type="button"
-          onClick={restart}
-          className="mt-10 min-h-[48px] min-w-[160px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15"
-          whileTap={{ scale: 0.98 }}
-        >
-          重启轮回
-        </motion.button>
-      </div>
+        </AnimatePresence>
+        <AnimatePresence>
+          {showNoEditHint && (
+            <NoEditHint onClose={() => setShowNoEditHint(false)} />
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
   return (
-    <motion.main
-      key={shakeKey}
-      initial={{ x: 0 }}
-      animate={{ x: shakeKey > 0 ? [0, -5, 5, -3, 3, 0] : 0 }}
-      transition={{ duration: 0.35 }}
-      className="relative flex h-screen w-full flex-col overflow-hidden bg-black font-sans text-white select-none"
-    >
+    <>
+      <motion.main
+        className="relative flex h-screen w-full flex-col overflow-hidden bg-black font-sans text-white select-none"
+      >
       {/* 顶部极细进度条 */}
       <div className="absolute left-0 right-0 top-0 z-30 h-0.5 bg-zinc-900">
         <motion.div
@@ -408,41 +463,38 @@ export default function NingYuanGame() {
       </div>
 
       {/* 情境区 */}
-      <div
-        className="absolute left-0 right-0 top-[12%] z-10 px-6 text-center pointer-events-none"
-        style={{ top: "16%" }}
-      >
+      <div className="absolute left-0 right-0 top-[10%] z-10 px-4 text-center pointer-events-none md:top-[16%] md:px-6">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentQuestion.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-xs font-normal tracking-[0.2em] text-zinc-500 md:text-sm"
+            className="text-xs font-normal leading-relaxed tracking-[0.2em] text-white/95 md:text-sm"
           >
             {currentQuestion.question_title}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      {/* 抉择区：上下平分 */}
+      {/* 抉择区：灵魂对峙，上下对称 */}
       <div className="relative flex flex-1 flex-col pt-10 min-h-0">
         <OptionCard
           side="A"
+          label="「 宁願 」"
           text={currentQuestion.optionA_text}
           isActive={selected === "A"}
           isDimmed={selected === "B"}
-          isIdle={selected === null}
           onSelect={() => handleSelect("A")}
           showResult={showResult}
           ratio={displayRatio[0]}
         />
         <OptionCard
           side="B"
+          label="「 或是 」"
           text={currentQuestion.optionB_text}
           isActive={selected === "B"}
           isDimmed={selected === "A"}
-          isIdle={selected === null}
           onSelect={() => handleSelect("B")}
           showResult={showResult}
           ratio={displayRatio[1]}
@@ -460,12 +512,12 @@ export default function NingYuanGame() {
               transition: { duration: 10 },
             }}
             exit={{ opacity: 0 }}
-            className={`absolute z-40 max-w-[260px] text-base italic text-white pointer-events-none ${
+            className={`absolute bottom-20 left-1/2 z-40 w-full max-w-xl -translate-x-1/2 px-4 text-center text-base italic text-white pointer-events-none md:bottom-24 md:px-6 ${
               resonanceWhisper.position === "topLeft"
-                ? "left-8 top-28"
+                ? "md:text-left md:pl-12"
                 : resonanceWhisper.position === "topRight"
-                  ? "right-8 top-28"
-                  : "bottom-28 left-1/2 -translate-x-1/2"
+                  ? "md:text-right md:pr-12"
+                  : ""
             }`}
           >
             {resonanceWhisper.text}
@@ -481,7 +533,7 @@ export default function NingYuanGame() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.12 }}
             exit={{ opacity: 0 }}
-            className="absolute left-1/2 top-1/2 z-5 w-full max-w-md -translate-x-1/2 -translate-y-1/2 px-6 text-center text-sm italic text-white pointer-events-none"
+            className="absolute bottom-20 left-4 right-4 z-5 w-full max-w-md px-4 text-center text-sm italic text-white pointer-events-none md:bottom-24 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-6"
           >
             {whisperText}
           </motion.p>
@@ -494,7 +546,7 @@ export default function NingYuanGame() {
       </div>
 
       {/* 底部属性条 */}
-      <footer className="flex shrink-0 justify-center gap-3 border-t border-zinc-900/80 bg-zinc-950/50 px-4 py-2.5">
+      <footer className="flex shrink-0 justify-center gap-2 overflow-x-auto border-t border-zinc-900/80 bg-zinc-950/50 px-3 py-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] scrollbar-hide md:gap-3 md:px-4">
         {STAT_KEYS.map((name) => (
           <StatBar
             key={name}
@@ -512,12 +564,12 @@ export default function NingYuanGame() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-6"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
           >
             <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
               阶段性镜像
             </p>
-            <h2 className="mt-4 font-serif text-2xl tracking-wide text-white/95 md:text-3xl">
+            <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 text-balance md:text-2xl lg:text-3xl">
               {stageTitle}
             </h2>
             <p className="mt-4 max-w-sm text-center text-sm leading-relaxed text-zinc-400">
@@ -526,7 +578,7 @@ export default function NingYuanGame() {
             <motion.button
               type="button"
               onClick={closeStageModal}
-              className="mt-10 min-h-[48px] min-w-[160px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15"
+              className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
               whileTap={{ scale: 0.98 }}
             >
               继续试炼
@@ -535,6 +587,106 @@ export default function NingYuanGame() {
         )}
       </AnimatePresence>
     </motion.main>
+      <AnimatePresence>
+        {showIntro && (
+          <IntroModal
+            onClose={() => {
+              setShowIntro(false);
+              setShowNoEditHint(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showNoEditHint && (
+          <NoEditHint onClose={() => setShowNoEditHint(false)} />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function NoEditHint({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-[55] flex flex-col items-center justify-center bg-black/80 px-6"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.25 }}
+        className="max-w-sm rounded border border-white/20 bg-zinc-900/90 px-6 py-5 text-center shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-sm leading-relaxed text-zinc-300">
+          你的选择一旦做出，将无法更改。
+        </p>
+        <motion.button
+          type="button"
+          onClick={onClose}
+          className="mt-4 min-h-[44px] min-w-[120px] rounded border border-white/30 bg-white/10 px-6 py-2.5 text-sm text-white/90 transition hover:bg-white/15"
+          whileTap={{ scale: 0.98 }}
+        >
+          知道了
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function IntroModal({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1.5 }}
+      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+    >
+      <div className="flex max-w-md flex-col items-center gap-4 text-center tracking-[0.15em] md:gap-6 md:tracking-[0.2em]">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-sm text-gray-500 md:text-base"
+        >
+          世界是一个天平。
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="text-sm text-gray-400 md:text-base"
+        >
+          左手是欲望，右手是灰烬。
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.5 }}
+          className="text-sm text-gray-400 md:text-base"
+        >
+          你的灵魂本无形状，直到你说了那句「
+          <strong className="text-white">我宁愿</strong>
+          」
+        </motion.p>
+      </div>
+      <motion.button
+        type="button"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 4 }}
+        onClick={onClose}
+        className="absolute bottom-[max(6rem,calc(1.5rem+env(safe-area-inset-bottom)))] min-h-[48px] min-w-[200px] border border-white/30 bg-transparent px-8 py-4 tracking-[0.2em] text-white/80 transition hover:text-white md:tracking-[0.3em]"
+      >
+        开始折叠灵魂
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -608,10 +760,10 @@ function SoulRadar({
 
 type OptionCardProps = {
   side: "A" | "B";
+  label: string;
   text: string;
   isActive: boolean;
   isDimmed: boolean;
-  isIdle: boolean;
   onSelect: () => void;
   showResult: boolean;
   ratio: number;
@@ -619,44 +771,54 @@ type OptionCardProps = {
 
 function OptionCard({
   side,
+  label,
   text,
   isActive,
   isDimmed,
-  isIdle,
   onSelect,
   showResult,
   ratio,
 }: OptionCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const contentOpacity = isDimmed ? 0.25 : 1;
+  const contentScale = hovered && !isDimmed ? 1.02 : 1;
+  const textColor = "text-white";
+
+  const boxShadow =
+    isDimmed
+      ? "0 0 0 transparent"
+      : isActive
+        ? "0 0 28px rgba(255,255,255,0.06)"
+        : hovered
+          ? "0 0 20px rgba(255,255,255,0.03)"
+          : "0 0 0 transparent";
+
   return (
     <motion.div
       onClick={onSelect}
-      className={`relative flex flex-1 flex items-center justify-center px-6 py-6 cursor-pointer transition-all duration-500 min-h-0
-        ${isActive ? "bg-zinc-900/60 backdrop-blur-md" : "bg-black"}
-        ${isDimmed ? "opacity-20" : "opacity-100"}
-        ${side === "A" ? "border-b border-white/5" : ""}`}
-      animate={{
-        boxShadow:
-          isIdle && !isDimmed
-            ? [
-                "0 0 0 1px rgba(255,255,255,0.05)",
-                "0 0 0 1px rgba(255,255,255,0.12)",
-                "0 0 0 1px rgba(255,255,255,0.05)",
-              ]
-            : "0 0 0 1px rgba(255,255,255,0.06)",
-      }}
-      transition={{
-        boxShadow:
-          isIdle && !isDimmed
-            ? { duration: 2.5, repeat: Infinity, repeatType: "reverse" }
-            : { duration: 0.2 },
-      }}
-      whileTap={{ scale: 0.995 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className={`relative flex min-h-[120px] flex-1 cursor-pointer items-center justify-center px-4 touch-manipulation md:px-6 ${isActive ? "border border-white/20" : "border border-transparent"}`}
+      animate={{ boxShadow }}
+      transition={{ duration: 0.25 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <div className="max-w-lg text-center">
-        <h2 className="font-extralight leading-relaxed tracking-wide text-2xl text-white/95 md:text-3xl">
+      <motion.div
+        className="flex max-w-[90vw] flex-col items-center gap-2 text-center md:max-w-lg"
+        animate={{ opacity: contentOpacity }}
+        transition={{ duration: 0.25 }}
+      >
+        <span className="mb-0.5 text-[10px] tracking-[0.4em] text-white/80">
+          {label}
+        </span>
+        <motion.h2
+          className={`font-extralight leading-relaxed tracking-widest text-lg ${textColor} md:text-xl`}
+          animate={{ scale: contentScale }}
+          transition={{ duration: 0.25 }}
+        >
           {text}
-        </h2>
-      </div>
+        </motion.h2>
+      </motion.div>
       {showResult && (
         <motion.span
           initial={{ opacity: 0 }}
@@ -680,8 +842,8 @@ function StatBar({
   highlight: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex h-5 w-3 flex-col justify-end overflow-hidden rounded-sm bg-zinc-900">
+    <div className="flex shrink-0 flex-col items-center gap-1">
+      <div className="flex h-5 w-2.5 flex-col justify-end overflow-hidden rounded-sm bg-zinc-900 md:w-3">
         <motion.div
           className="w-full rounded-sm bg-white/35"
           initial={false}
@@ -691,8 +853,8 @@ function StatBar({
         />
       </div>
       <span
-        className={`text-[8px] tracking-wider transition-colors ${
-          highlight ? "text-white/90" : "text-zinc-600"
+        className={`text-[7px] tracking-wider transition-colors md:text-[8px] ${
+          "text-white"
         }`}
       >
         {name}
