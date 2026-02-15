@@ -38,9 +38,17 @@ const STAGE_TITLES: Record<string, { title: string; phrase: string }> = {
 };
 
 const SAVE_KEY = "ningyuan_progress";
+const SOUL_ID_KEY = "soul_id";
 
 /** 题目加减分强度系数，大于 1 时变化更剧烈 */
 const IMPACT_MULTIPLIER = 1.5;
+
+const SOUL_MATE_TIERS = [20, 40, 60, 80, 100] as const;
+
+function generateSoulId(): string {
+  const n = 1000 + Math.floor(Math.random() * 9000);
+  return `NO.NY-${n}-X`;
+}
 
 function getSacrificeRecap(
   impactHistory: Record<string, number>[]
@@ -150,6 +158,17 @@ export default function NingYuanGame() {
   const [showFinalReport, setShowFinalReport] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [showNoEditHint, setShowNoEditHint] = useState(false);
+  const [soulId, setSoulId] = useState<string>("");
+  const [user, setUser] = useState<{ id: string; soul_id: string; display_name: string | null } | null>(null);
+  const [showSoulMateLayer, setShowSoulMateLayer] = useState(false);
+  const [soulMateTier, setSoulMateTier] = useState<number>(20);
+  const [soulMateMatches, setSoulMateMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
+  const [pendingSoulMateNextIndex, setPendingSoulMateNextIndex] = useState<number | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [similarOpen, setSimilarOpen] = useState(false);
+  const [similarMaxTier, setSimilarMaxTier] = useState<number | null>(null);
+  const [similarMatches, setSimilarMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
   const statsRef = useRef(stats);
   const prevTopAttrRef = useRef<string | null>(null);
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
@@ -206,6 +225,64 @@ export default function NingYuanGame() {
     } catch (_) {}
   }, [currentIndex, stats, questionOrder, showFinalReport]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      let id = localStorage.getItem(SOUL_ID_KEY);
+      if (!id) {
+        id = generateSoulId();
+        localStorage.setItem(SOUL_ID_KEY, id);
+      }
+      setSoulId(id);
+    } catch (_) {}
+  }, []);
+
+  const fetchUser = useCallback(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.user) setUser(d.user);
+        else setUser(null);
+      })
+      .catch(() => setUser(null));
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.href = "/";
+  }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setSimilarMaxTier(null);
+      setSimilarMatches([]);
+      return;
+    }
+    setSimilarLoading(true);
+    fetch("/api/play/me")
+      .then((r) => r.json())
+      .then((d) => {
+        const tier = d?.maxTier ?? null;
+        setSimilarMaxTier(tier);
+        if (tier != null) {
+          return fetch(`/api/soul-mates?tier=${tier}`).then((r) => r.json());
+        }
+        setSimilarMatches([]);
+      })
+      .then((d) => {
+        if (d?.matches) setSimilarMatches(d.matches);
+      })
+      .catch(() => setSimilarMatches([]))
+      .finally(() => setSimilarLoading(false));
+  }, [user?.id]);
+
   const total = questions.length;
   const currentQuestion =
     questionOrder !== null
@@ -221,6 +298,30 @@ export default function NingYuanGame() {
     const t = setInterval(pick, 6000 + Math.random() * 2000);
     return () => clearInterval(t);
   }, [selected]);
+
+  useEffect(() => {
+    if (!showSoulMateLayer || !soulMateTier) return;
+    const statsSnapshot = statsRef.current;
+    if (user) {
+      fetch("/api/play/checkpoint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: soulMateTier, stats: statsSnapshot }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.matches?.length) setSoulMateMatches(d.matches);
+          else setSoulMateMatches([]);
+        })
+        .catch(() => setSoulMateMatches([]));
+    } else {
+      setSoulMateMatches([
+        { soul_id: `NO.NY-${1000 + Math.floor(Math.random() * 9000)}-A`, resonance: 85 + Math.floor(Math.random() * 14) },
+        { soul_id: `NO.NY-${1000 + Math.floor(Math.random() * 9000)}-B`, resonance: 85 + Math.floor(Math.random() * 14) },
+        { soul_id: `NO.NY-${1000 + Math.floor(Math.random() * 9000)}-C`, resonance: 85 + Math.floor(Math.random() * 14) },
+      ]);
+    }
+  }, [showSoulMateLayer, soulMateTier, user?.id]);
 
   const handleSelect = useCallback(
     (choice: "A" | "B") => {
@@ -280,7 +381,17 @@ export default function NingYuanGame() {
       setTimeout(() => {
         const nextIndex = currentIndex + 1;
         if (nextIndex >= total) {
-          setShowFinalReport(true);
+          if (nextIndex === 100) {
+            setSoulMateTier(100);
+            setPendingSoulMateNextIndex(100);
+            setShowSoulMateLayer(true);
+          } else {
+            setShowFinalReport(true);
+          }
+        } else if (SOUL_MATE_TIERS.includes(nextIndex as (typeof SOUL_MATE_TIERS)[number])) {
+          setSoulMateTier(nextIndex);
+          setPendingSoulMateNextIndex(nextIndex);
+          setShowSoulMateLayer(true);
         } else if (nextIndex % 10 === 0) {
           const impact: Impact =
             choice === "A" ? currentQuestion.impactA : currentQuestion.impactB;
@@ -327,6 +438,22 @@ export default function NingYuanGame() {
     setStageStartStats(() => ({ ...statsRef.current }));
   }, []);
 
+  const closeSoulMateLayer = useCallback(() => {
+    setShowSoulMateLayer(false);
+    const next = pendingSoulMateNextIndex;
+    setPendingSoulMateNextIndex(null);
+    if (next != null) {
+      if (next >= total) {
+        setShowFinalReport(true);
+      } else {
+        setCurrentIndex(next);
+        setSelected(null);
+        setShowResult(false);
+        setLastChangedKeys([]);
+      }
+    }
+  }, [pendingSoulMateNextIndex, total]);
+
   const restart = useCallback(() => {
     if (typeof window !== "undefined") try {
       localStorage.removeItem(SAVE_KEY);
@@ -335,6 +462,8 @@ export default function NingYuanGame() {
     prevTopAttrRef.current = null;
     resonanceLastShownAtRef.current = -999;
     setShowFinalReport(false);
+    setShowSoulMateLayer(false);
+    setPendingSoulMateNextIndex(null);
     setQuestionOrder(shuffleOrder(questions.length));
     setCurrentIndex(0);
     setStats({ ...INIT_STATS });
@@ -399,6 +528,11 @@ export default function NingYuanGame() {
     return (
       <>
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6">
+          {soulId && (
+            <span className="absolute bottom-6 left-4 font-mono text-[10px] opacity-30 md:left-6">
+              {soulId}
+            </span>
+          )}
           <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
             终极镜像
           </p>
@@ -419,14 +553,22 @@ export default function NingYuanGame() {
               <p>你的灵魂画像已定。</p>
             )}
           </div>
-          <motion.button
-            type="button"
-            onClick={restart}
-            className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
-            whileTap={{ scale: 0.98 }}
-          >
-            重启轮回
-          </motion.button>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="/chat"
+              className="min-h-[48px] rounded border border-white/30 px-6 py-3 text-sm text-white/90 transition hover:bg-white/10"
+            >
+              我的连接
+            </a>
+            <motion.button
+              type="button"
+              onClick={restart}
+              className="min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+              whileTap={{ scale: 0.98 }}
+            >
+              重启轮回
+            </motion.button>
+          </div>
         </div>
         <AnimatePresence>
           {showIntro && (
@@ -557,6 +699,50 @@ export default function NingYuanGame() {
         ))}
       </footer>
 
+      {/* 灵魂身份标本标签 + 退出 */}
+      {soulId && (
+        <span className="absolute bottom-14 left-3 z-10 font-mono text-[10px] opacity-30 md:bottom-16 md:left-4">
+          {soulId}
+        </span>
+      )}
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-3 md:right-4 md:top-4">
+        {user ? (
+          <>
+            <a href="/chat" className="text-[10px] text-zinc-500 underline hover:text-white">
+              我的连接
+            </a>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-[10px] text-zinc-500 underline hover:text-white"
+            >
+              退出
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowAuthModal(true)}
+            className="text-[10px] text-zinc-500 underline hover:text-white"
+          >
+            登录
+          </button>
+        )}
+      </div>
+
+      {/* 灵魂伴侣层：每 20 题 */}
+      <AnimatePresence>
+        {showSoulMateLayer && (
+          <SoulMateLayer
+            tier={soulMateTier}
+            matches={soulMateMatches}
+            isLoggedIn={!!user}
+            onContinue={closeSoulMateLayer}
+            onOpenAuth={() => setShowAuthModal(true)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* 阶段性镜像 Modal */}
       <AnimatePresence>
         {showStageModal && (
@@ -575,6 +761,22 @@ export default function NingYuanGame() {
             <p className="mt-4 max-w-sm text-center text-sm leading-relaxed text-zinc-400">
               {stagePhrase}
             </p>
+            {!user ? (
+              <p className="mt-6 text-center text-xs text-zinc-500">
+                登录后解锁真实灵魂伴侣
+                <button
+                  type="button"
+                  onClick={() => setShowAuthModal(true)}
+                  className="ml-2 underline text-white/70 hover:text-white"
+                >
+                  登录 | 注册
+                </button>
+              </p>
+            ) : (
+              <p className="mt-6 text-center text-xs text-zinc-500">
+                <a href="/chat" className="underline text-white/70 hover:text-white">我的连接</a>
+              </p>
+            )}
             <motion.button
               type="button"
               onClick={closeStageModal}
@@ -587,6 +789,141 @@ export default function NingYuanGame() {
         )}
       </AnimatePresence>
     </motion.main>
+
+      {/* 与你相似：桌面侧栏 + 移动端浮动按钮与抽屉 */}
+      <div className="fixed right-0 top-0 bottom-0 z-20 hidden md:block">
+        <motion.div
+          className="flex h-full flex-col border-l border-white/10 bg-black/95"
+          initial={false}
+          animate={{ width: similarOpen ? 200 : 48 }}
+          transition={{ duration: 0.2 }}
+        >
+          <button
+            type="button"
+            onClick={() => setSimilarOpen((o) => !o)}
+            className="flex h-12 shrink-0 items-center justify-center border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500 hover:text-white"
+          >
+            {similarOpen ? "收起" : "相似"}
+          </button>
+          {similarOpen && (
+            <div className="flex flex-1 flex-col overflow-y-auto p-3">
+              {!user ? (
+                <p className="text-center text-xs text-zinc-500">
+                  登录后解锁与你相似的人
+                  <button type="button" onClick={() => setShowAuthModal(true)} className="mt-2 block w-full rounded border border-white/20 py-1.5 text-[10px] text-white/70 hover:bg-white/5">登录</button>
+                </p>
+              ) : similarLoading ? (
+                <p className="text-center text-xs text-zinc-500">加载中...</p>
+              ) : similarMaxTier == null ? (
+                <p className="text-center text-xs text-zinc-500">完成 20 题解锁</p>
+              ) : similarMatches.length === 0 ? (
+                <p className="text-center text-xs text-zinc-500">暂无匹配</p>
+              ) : (
+                <ul className="space-y-2">
+                  {similarMatches.slice(0, 3).map((m) => (
+                    <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-2">
+                      <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
+                      {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          fetch("/api/conversations/request", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ target_soul_id: m.soul_id }),
+                          }).then(() => window.open("/chat", "_self"));
+                        }}
+                        className="mt-1.5 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
+                      >
+                        请求连接
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* 移动端：浮动按钮 */}
+      {!similarOpen && (
+        <button
+          type="button"
+          onClick={() => setSimilarOpen(true)}
+          className="fixed bottom-20 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/90 text-[10px] text-zinc-400 md:hidden"
+          aria-label="与你相似"
+        >
+          相似
+        </button>
+      )}
+
+      {/* 移动端：抽屉 */}
+      <AnimatePresence>
+        {similarOpen && (
+          <motion.div
+            key="similar-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-30 bg-black/60 md:hidden"
+            onClick={() => setSimilarOpen(false)}
+          />
+        )}
+        {similarOpen && (
+          <motion.div
+            key="similar-drawer"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "tween", duration: 0.2 }}
+            className="fixed right-0 top-0 bottom-0 z-40 w-72 border-l border-white/10 bg-black/95 p-4 md:hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <span className="text-xs uppercase tracking-wider text-zinc-500">与你相似</span>
+              <button type="button" onClick={() => setSimilarOpen(false)} className="text-zinc-500 hover:text-white">关闭</button>
+            </div>
+            <div className="mt-3">
+              {!user ? (
+                <p className="text-center text-xs text-zinc-500">
+                  登录后解锁与你相似的人
+                  <button type="button" onClick={() => { setShowAuthModal(true); setSimilarOpen(false); }} className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/5">登录</button>
+                </p>
+              ) : similarLoading ? (
+                <p className="text-center text-xs text-zinc-500">加载中...</p>
+              ) : similarMaxTier == null ? (
+                <p className="text-center text-xs text-zinc-500">完成 20 题解锁</p>
+              ) : similarMatches.length === 0 ? (
+                <p className="text-center text-xs text-zinc-500">暂无匹配</p>
+              ) : (
+                <ul className="mt-2 space-y-3">
+                  {similarMatches.slice(0, 3).map((m) => (
+                    <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-3">
+                      <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
+                      {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          fetch("/api/conversations/request", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ target_soul_id: m.soul_id }),
+                          }).then(() => window.open("/chat", "_self"));
+                        }}
+                        className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
+                      >
+                        请求连接
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showIntro && (
           <IntroModal
@@ -602,7 +939,273 @@ export default function NingYuanGame() {
           <NoEditHint onClose={() => setShowNoEditHint(false)} />
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {showAuthModal && (
+          <AuthModal
+            soulId={soulId}
+            onClose={() => setShowAuthModal(false)}
+            onSuccess={() => { fetchUser(); setShowAuthModal(false); }}
+          />
+        )}
+      </AnimatePresence>
     </>
+  );
+}
+
+function SoulMateLayer({
+  tier,
+  matches,
+  isLoggedIn,
+  onContinue,
+  onOpenAuth,
+}: {
+  tier: number;
+  matches: { soul_id: string; resonance: number; stats?: Record<string, number> }[];
+  isLoggedIn: boolean;
+  onContinue: () => void;
+  onOpenAuth?: () => void;
+}) {
+  const defaultStats = Object.fromEntries(STAT_KEYS.map((k) => [k, 50]));
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
+    >
+      <p className="font-serif text-[10px] uppercase tracking-[0.3em] text-zinc-500">
+        第 {tier / 20} 层灵魂伴侣
+      </p>
+      {!isLoggedIn && (
+        <p className="mt-2 text-center text-xs text-zinc-500">
+          登录后解锁真实灵魂伴侣
+          {onOpenAuth && (
+            <button type="button" onClick={onOpenAuth} className="ml-2 underline text-white/70 hover:text-white">
+              登录 | 注册
+            </button>
+          )}
+        </p>
+      )}
+      <div className="mt-6 flex flex-wrap items-stretch justify-center gap-4 md:gap-6">
+        {(matches.length ? matches : [{ soul_id: "—", resonance: 0 }, { soul_id: "—", resonance: 0 }, { soul_id: "—", resonance: 0 }]).slice(0, 3).map((m, i) => (
+          <motion.div
+            key={m.soul_id + i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="flex w-28 flex-col items-center rounded border border-white/15 bg-white/5 p-4 md:w-32"
+          >
+            <div className="h-16 w-16 overflow-hidden rounded opacity-80 md:h-20 md:w-20">
+              <SoulRadar stats={m.stats ?? defaultStats} className="h-full w-full" />
+            </div>
+            <span className="mt-2 font-mono text-[10px] text-white/80">{m.soul_id}</span>
+            {m.resonance > 0 && (
+              <span className="mt-0.5 font-mono text-xs text-white/60">共鸣 {m.resonance}%</span>
+            )}
+            {m.soul_id !== "—" && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isLoggedIn) onOpenAuth?.();
+                  else {
+                    fetch("/api/conversations/request", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ target_soul_id: m.soul_id }),
+                    }).then(() => window.open("/chat", "_self"));
+                  }
+                }}
+                className="mt-2 rounded border border-white/20 px-2 py-1 text-[10px] text-white/70 hover:bg-white/10"
+              >
+                请求连接
+              </button>
+            )}
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        {isLoggedIn && (
+          <a
+            href="/chat"
+            className="min-h-[48px] rounded border border-white/30 px-6 py-3 text-sm text-white/90 transition hover:bg-white/10"
+          >
+            我的连接
+          </a>
+        )}
+        <motion.button
+          type="button"
+          onClick={onContinue}
+          className="min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+          whileTap={{ scale: 0.98 }}
+        >
+          继续试炼
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
+function AuthModal({
+  soulId,
+  onClose,
+  onSuccess,
+}: {
+  soulId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [mode, setMode] = useState<"register" | "login">("register");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [justRegistered, setJustRegistered] = useState(false);
+
+  useEffect(() => {
+    if (!justRegistered) return;
+    const t = setTimeout(() => onSuccess(), 1800);
+    return () => clearTimeout(t);
+  }, [justRegistered, onSuccess]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      if (mode === "register") {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            display_name: displayName.trim() || null,
+            soul_id: soulId || null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data?.error || "注册失败");
+          setLoading(false);
+          return;
+        }
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (signInError) setError("账号已创建，请使用登录");
+        else {
+          setLoading(false);
+          setJustRegistered(true);
+        }
+      } else {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (signInError) {
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+        onSuccess();
+      }
+    } catch {
+      setError("请求失败");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[55] flex items-center justify-center bg-black/85 px-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        className="w-full max-w-sm rounded border border-white/20 bg-zinc-900/95 p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {justRegistered ? (
+          <div className="flex flex-col items-center py-2">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-white/10 text-2xl text-white/95" aria-hidden>
+              ✓
+            </span>
+            <h3 className="mt-6 font-serif text-lg text-white/95">注册成功</h3>
+            <p className="mt-2 text-center text-sm text-zinc-400">已为你登录，即将进入荒原</p>
+            <motion.button
+              type="button"
+              onClick={onSuccess}
+              className="mt-8 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-3 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15"
+              whileTap={{ scale: 0.98 }}
+            >
+              进入荒原
+            </motion.button>
+          </div>
+        ) : (
+          <>
+        <h3 className="font-serif text-lg text-white/95">匿名信号无法桥接。</h3>
+        <p className="mt-2 text-sm text-zinc-400">为了触碰另一个灵魂，你必须先在荒原刻下真名。</p>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="代号/邮箱"
+            className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+            required
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="密码"
+            className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+            required
+            minLength={6}
+          />
+          {mode === "register" && (
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="显示名（可选）"
+              className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+            />
+          )}
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => { setMode(mode === "register" ? "login" : "register"); setError(""); }}
+              className="rounded border border-white/20 px-4 py-2 text-sm text-white/70 hover:bg-white/5"
+            >
+              {mode === "register" ? "去登录" : "去注册"}
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 rounded border border-white/30 bg-white/10 px-4 py-2 text-sm text-white/90 hover:bg-white/15 disabled:opacity-50"
+            >
+              {mode === "register" ? "建立连接" : "登录"}
+            </button>
+          </div>
+        </form>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }
 
