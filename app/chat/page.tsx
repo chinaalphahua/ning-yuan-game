@@ -137,7 +137,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="flex min-h-screen flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[max(env(safe-area-inset-bottom),4.5rem)] md:pb-[env(safe-area-inset-bottom)]">
       <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3 min-h-[48px] touch-manipulation">
         <div className="flex items-center gap-2 min-w-0">
           {selectedId ? (
@@ -239,7 +239,7 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
               {selected.status === "accepted" && (
-                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(4.5rem,env(safe-area-inset-bottom))] md:pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                   <input
                     type="text"
                     value={input}
