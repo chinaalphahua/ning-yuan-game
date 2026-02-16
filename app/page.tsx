@@ -592,7 +592,7 @@ export default function NingYuanGame() {
   return (
     <>
       <motion.main
-        className="relative flex h-screen w-full flex-col overflow-hidden bg-black font-sans text-white select-none"
+        className="relative flex h-screen h-[100dvh] w-full flex-col overflow-hidden bg-black font-sans text-white select-none pt-[env(safe-area-inset-top)]"
       >
       {/* 顶部极细进度条 */}
       <div className="absolute left-0 right-0 top-0 z-30 h-0.5 bg-zinc-900">

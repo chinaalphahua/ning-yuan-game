@@ -24,7 +24,12 @@ export const metadata: Metadata = {
   description: "极简哲学二选一游戏",
 };
 
-export const viewport = { viewportFit: "cover" as const };
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover" as const,
+};
 
 export default function RootLayout({
   children,
@@ -32,9 +37,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full overflow-hidden">
+    <html lang="zh-CN" className="h-full min-h-[100dvh] overflow-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSC.variable} h-full overflow-hidden antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSC.variable} h-full min-h-[100dvh] overflow-hidden antialiased`}
       >
         {children}
       </body>

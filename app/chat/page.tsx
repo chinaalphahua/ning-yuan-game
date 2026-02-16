@@ -91,7 +91,7 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4 text-white">
+      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center bg-black px-4 text-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         <p className="font-serif text-zinc-400">请先登录以查看连接。</p>
         <Link
           href="/"
@@ -137,7 +137,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[max(env(safe-area-inset-bottom),4.5rem)] md:pb-[env(safe-area-inset-bottom)]">
+    <div className="flex min-h-screen min-h-[100dvh] flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[max(env(safe-area-inset-bottom),4.5rem)] md:pb-[env(safe-area-inset-bottom)]">
       <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3 min-h-[48px] touch-manipulation">
         <div className="flex items-center gap-2 min-w-0">
           {selectedId ? (

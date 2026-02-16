@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* 动态视口高度，随浏览器 UI 显示/隐藏变化；不支持时回退 100vh */
+  --viewport-height: 100vh;
+  --viewport-height-dynamic: 100dvh;
 }
 
 @theme inline {
@@ -20,10 +23,19 @@
   }
 }
 
+html {
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 @layer utilities {
