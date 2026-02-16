@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 
-type Conversation = { id: string; other_soul_id: string; status: string; created_at: string };
+type Conversation = { id: string; other_soul_id: string; other_display_name?: string | null; status: string; created_at: string };
 type Message = { id: string; sender_soul_id: string; is_me: boolean; content: string; created_at: string };
 
 export default function ChatPage() {
@@ -125,7 +125,8 @@ export default function ChatPage() {
                   selectedId === c.id ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 active:bg-white/10"
                 }`}
               >
-                <span className="font-mono text-sm">{c.other_soul_id}</span>
+                <span className="text-sm font-medium">{c.other_display_name || c.other_soul_id}</span>
+                {c.other_display_name ? <span className="ml-1 font-mono text-[10px] text-zinc-500">({c.other_soul_id})</span> : null}
                 <span className="ml-2 text-[10px] text-zinc-500">{c.status === "accepted" ? "已连接" : "待接受"}</span>
               </button>
             </li>
@@ -153,7 +154,7 @@ export default function ChatPage() {
             返回试炼
           </Link>
           {selected ? (
-            <span className="ml-2 truncate font-mono text-sm text-white/90 md:ml-0">{selected.other_soul_id}</span>
+            <span className="ml-2 truncate text-sm text-white/90 md:ml-0">{selected.other_display_name || selected.other_soul_id}</span>
           ) : null}
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -210,7 +211,7 @@ export default function ChatPage() {
                   onClick={() => setDrawerOpen(true)}
                   className="text-sm font-mono text-white/90 touch-manipulation"
                 >
-                  {selected.other_soul_id} ▾
+                  {(selected.other_display_name || selected.other_soul_id)} ▾
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain">

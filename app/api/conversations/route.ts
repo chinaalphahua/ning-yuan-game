@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -13,13 +14,15 @@ export async function GET() {
       .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
       .order("created_at", { ascending: false });
 
-    const list: { id: string; other_soul_id: string; status: string; created_at: string }[] = [];
+    const admin = createAdminClient();
+    const list: { id: string; other_soul_id: string; other_display_name: string | null; status: string; created_at: string }[] = [];
     for (const r of rows ?? []) {
       const otherId = r.user_a_id === user.id ? r.user_b_id : r.user_a_id;
-      const { data: prof } = await supabase.from("profiles").select("soul_id").eq("id", otherId).single();
+      const { data: prof } = await admin.from("profiles").select("soul_id, display_name").eq("id", otherId).single();
       list.push({
         id: r.id,
         other_soul_id: prof?.soul_id ?? "",
+        other_display_name: prof?.display_name ?? null,
         status: r.status,
         created_at: r.created_at,
       });
