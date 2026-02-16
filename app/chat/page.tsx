@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft } from "lucide-react";
 
 type Conversation = { id: string; other_soul_id: string; status: string; created_at: string };
 type Message = { id: string; sender_soul_id: string; is_me: boolean; content: string; created_at: string };
@@ -14,6 +15,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ soul_id: string } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const fetchUser = useCallback(() => {
     fetch("/api/auth/me")
@@ -101,97 +103,167 @@ export default function ChatPage() {
     );
   }
 
+  const selectConversation = (id: string) => {
+    setSelectedId(id);
+    setDrawerOpen(false);
+  };
+
+  const ConversationList = () => (
+    <>
+      {loading ? (
+        <p className="p-4 text-xs text-zinc-500">加载中...</p>
+      ) : conversations.length === 0 ? (
+        <p className="p-4 text-xs text-zinc-500">暂无连接</p>
+      ) : (
+        <ul className="p-2 space-y-0.5 md:p-2">
+          {conversations.map((c) => (
+            <li key={c.id}>
+              <button
+                type="button"
+                onClick={() => selectConversation(c.id)}
+                className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${
+                  selectedId === c.id ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 active:bg-white/10"
+                }`}
+              >
+                <span className="font-mono text-sm">{c.other_soul_id}</span>
+                <span className="ml-2 text-[10px] text-zinc-500">{c.status === "accepted" ? "已连接" : "待接受"}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3">
-        <Link href="/" className="text-xs text-white/60 transition hover:text-white/90">
-          返回试炼
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] opacity-50">{user.soul_id}</span>
+    <div className="flex min-h-screen flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3 min-h-[48px] touch-manipulation">
+        <div className="flex items-center gap-2 min-w-0">
+          {selectedId ? (
+            <button
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="flex h-10 w-10 -ml-2 items-center justify-center rounded-full text-white/80 hover:bg-white/10 active:bg-white/15 md:hidden"
+              aria-label="返回会话列表"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          ) : null}
+          <Link href="/" className="text-sm text-white/60 transition hover:text-white/90 whitespace-nowrap">
+            返回试炼
+          </Link>
+          {selected ? (
+            <span className="ml-2 truncate font-mono text-sm text-white/90 md:ml-0">{selected.other_soul_id}</span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="hidden md:inline font-mono text-[10px] opacity-50">{user.soul_id}</span>
           <button
             type="button"
             onClick={handleLogout}
-            className="text-[10px] text-zinc-500 underline hover:text-white"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xs text-zinc-500 underline hover:text-white touch-manipulation"
           >
             退出
           </button>
         </div>
       </header>
+
       <div className="flex flex-1 min-h-0">
-        <aside className="w-48 shrink-0 border-r border-zinc-800 overflow-y-auto">
-          {loading ? (
-            <p className="p-4 text-xs text-zinc-500">加载中...</p>
-          ) : conversations.length === 0 ? (
-            <p className="p-4 text-xs text-zinc-500">暂无连接</p>
-          ) : (
-            <ul className="p-2">
-              {conversations.map((c) => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(c.id)}
-                    className={`w-full rounded px-3 py-2 text-left text-sm ${
-                      selectedId === c.id ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5"
-                    }`}
-                  >
-                    <span className="font-mono">{c.other_soul_id}</span>
-                    <span className="ml-1 text-[10px] text-zinc-500">{c.status === "accepted" ? "已连接" : "待接受"}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+        {/* 桌面：左侧会话列表 */}
+        <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto">
+          <ConversationList />
         </aside>
+
+        {/* 移动端：切换会话时抽屉 */}
+        <AnimatePresence>
+          {drawerOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 top-[52px] z-10 bg-black/60 md:hidden"
+                onClick={() => setDrawerOpen(false)}
+                aria-hidden
+              />
+              <motion.aside
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "tween", duration: 0.2 }}
+                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-zinc-800 overflow-y-auto bg-black md:hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-3 border-b border-zinc-800 text-xs text-zinc-500">切换会话</div>
+                <ConversationList />
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
         <main className="flex flex-1 flex-col min-h-0">
           {selected ? (
             <>
-              <div className="shrink-0 border-b border-zinc-800 px-4 py-2 font-mono text-sm text-white/90">
-                {selected.other_soul_id}
+              <div className="md:hidden shrink-0 border-b border-zinc-800 px-4 py-2 min-h-[44px] flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(true)}
+                  className="text-sm font-mono text-white/90 touch-manipulation"
+                >
+                  {selected.other_soul_id} ▾
+                </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain">
                 <AnimatePresence>
                   {messages.map((m) => (
                     <motion.div
                       key={m.id}
-                      initial={{ opacity: 0, y: 4 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={m.is_me ? "text-right" : "text-left"}
+                      transition={{ duration: 0.2 }}
+                      className={`flex ${m.is_me ? "justify-end" : "justify-start"}`}
                     >
-                      <span className="inline-block max-w-[85%] rounded bg-white/10 px-3 py-2 text-sm">
-                        {m.content}
-                      </span>
-                      <span className="ml-2 font-mono text-[10px] text-zinc-500">{m.sender_soul_id}</span>
+                      <div className={`flex flex-col max-w-[85%] ${m.is_me ? "items-end" : "items-start"}`}>
+                        <span
+                          className={`inline-block rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
+                            m.is_me ? "rounded-br-md bg-white/15 text-white" : "rounded-bl-md bg-white/8 text-zinc-100"
+                          }`}
+                        >
+                          {m.content}
+                        </span>
+                        <span className="mt-1 font-mono text-[10px] text-zinc-500">{m.sender_soul_id}</span>
+                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
               {selected.status === "accepted" && (
-                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3">
+                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())}
                     placeholder="输入消息..."
-                    className="flex-1 rounded border border-white/20 bg-black px-4 py-2 text-sm text-white placeholder:text-zinc-500"
+                    className="flex-1 min-h-[48px] rounded-xl border border-white/20 bg-zinc-900/80 px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none touch-manipulation"
+                    autoComplete="off"
                   />
                   <button
                     type="button"
                     onClick={sendMessage}
-                    className="rounded border border-white/30 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                    className="shrink-0 min-h-[48px] min-w-[64px] flex items-center justify-center rounded-xl border border-white/30 px-4 py-3 text-sm font-medium text-white/90 bg-white/10 hover:bg-white/15 active:bg-white/20 touch-manipulation"
                   >
                     发送
                   </button>
                 </div>
               )}
               {selected.status === "pending" && (
-                <div className="shrink-0 flex flex-col items-center gap-2 p-3">
-                  <p className="text-xs text-zinc-500">等待对方接受连接，或你可接受对方请求</p>
+                <div className="shrink-0 flex flex-col items-center gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                  <p className="text-xs text-zinc-500 text-center">等待对方接受连接，或你可接受对方请求</p>
                   <button
                     type="button"
                     onClick={() => acceptConnection(selected.id)}
-                    className="rounded border border-white/30 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                    className="min-h-[48px] min-w-[120px] rounded-xl border border-white/30 px-6 py-3 text-sm text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
                   >
                     接受连接
                   </button>
@@ -199,8 +271,15 @@ export default function ChatPage() {
               )}
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center text-zinc-500 text-sm">
-              选择左侧会话或完成试炼后请求连接
+            <div className="flex flex-1 flex-col min-h-0">
+              {/* 移动端：无选中时主区域显示会话列表 */}
+              <div className="flex-1 overflow-y-auto md:hidden">
+                <ConversationList />
+              </div>
+              {/* 桌面：无选中时显示提示 */}
+              <div className="hidden md:flex flex-1 items-center justify-center px-4 text-center">
+                <p className="text-sm text-zinc-500">选择左侧会话或完成试炼后请求连接</p>
+              </div>
             </div>
           )}
         </main>
