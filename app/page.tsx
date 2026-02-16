@@ -499,7 +499,7 @@ export default function NingYuanGame() {
   }
 
   if (!currentQuestion) {
-    return (
+  return (
       <>
         <div className="min-h-screen w-full bg-black pb-[env(safe-area-inset-bottom)]" />
         <AnimatePresence>
@@ -1454,7 +1454,7 @@ function StatBar({
           transition={{ type: "spring", stiffness: 200, damping: 25 }}
           style={{ minHeight: value > 0 ? 2 : 0 }}
         />
-      </div>
+        </div>
       <span
         className={`text-[7px] tracking-wider transition-colors md:text-[8px] ${
           "text-white"

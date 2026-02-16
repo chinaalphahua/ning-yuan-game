@@ -214,7 +214,7 @@ export default function ChatPage() {
                   {(selected.other_display_name || selected.other_soul_id)} ▾
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
                   {messages.map((m) => (
                     <motion.div
@@ -239,15 +239,16 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
               {selected.status === "accepted" && (
-                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(4.5rem,env(safe-area-inset-bottom))] md:pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(4.5rem,env(safe-area-inset-bottom))] md:pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())}
                     placeholder="输入消息..."
-                    className="flex-1 min-h-[48px] rounded-xl border border-white/20 bg-zinc-900/80 px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none touch-manipulation"
+                    className="flex-1 min-w-0 min-h-[48px] max-h-[48px] rounded-xl border border-white/20 bg-zinc-900/80 px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none touch-manipulation"
                     autoComplete="off"
+                    maxLength={500}
                   />
                   <button
                     type="button"
