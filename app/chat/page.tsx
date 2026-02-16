@@ -137,7 +137,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="flex min-h-screen min-h-[100dvh] flex-col bg-black text-white pt-[env(safe-area-inset-top)] pb-[max(env(safe-area-inset-bottom),4.5rem)] md:pb-[env(safe-area-inset-bottom)]">
+    <div className="flex h-screen h-[100dvh] flex-col bg-black text-white pt-[env(safe-area-inset-top)] overflow-hidden">
       <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3 min-h-[48px] touch-manipulation">
         <div className="flex items-center gap-2 min-w-0">
           {selectedId ? (
@@ -169,9 +169,9 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 桌面：左侧会话列表 */}
-        <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto">
+        <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto min-h-0">
           <ConversationList />
         </aside>
 
@@ -202,7 +202,7 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
 
-        <main className="flex flex-1 flex-col min-h-0">
+        <main className="flex flex-1 flex-col min-h-0 overflow-hidden">
           {selected ? (
             <>
               <div className="md:hidden shrink-0 border-b border-zinc-800 px-4 py-2 min-h-[44px] flex items-center">
@@ -214,7 +214,8 @@ export default function ChatPage() {
                   {(selected.other_display_name || selected.other_soul_id)} ▾
                 </button>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+              {/* 仅此区域可上下滑动，类似微信/WhatsApp */}
+              <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
                   {messages.map((m) => (
                     <motion.div
@@ -239,7 +240,7 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
               {selected.status === "accepted" && (
-                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(4.5rem,env(safe-area-inset-bottom))] md:pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black">
+                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(3rem,env(safe-area-inset-bottom))] md:pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-black">
                   <input
                     type="text"
                     value={input}
