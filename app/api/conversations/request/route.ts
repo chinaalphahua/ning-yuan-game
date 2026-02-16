@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -14,7 +15,8 @@ export async function POST(request: Request) {
     }
 
     const { data: myProfile } = await supabase.from("profiles").select("id").eq("id", user.id).single();
-    const { data: targetProfile } = await supabase.from("profiles").select("id").eq("soul_id", target_soul_id.trim()).single();
+    const admin = createAdminClient();
+    const { data: targetProfile } = await admin.from("profiles").select("id").eq("soul_id", target_soul_id.trim()).single();
     if (!myProfile || !targetProfile || targetProfile.id === myProfile.id) {
       return NextResponse.json({ error: "目标灵魂不存在或无效" }, { status: 400 });
     }
