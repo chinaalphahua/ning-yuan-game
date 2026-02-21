@@ -169,6 +169,7 @@ export default function NingYuanGame() {
   const [similarMaxTier, setSimilarMaxTier] = useState<number | null>(null);
   const [similarMatches, setSimilarMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
+  const [growth, setGrowth] = useState<{ level: number; xp: number; insight: number; privileges: string[] } | null>(null);
   const statsRef = useRef(stats);
   const prevTopAttrRef = useRef<string | null>(null);
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
@@ -258,6 +259,31 @@ export default function NingYuanGame() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  const fetchGrowth = useCallback(() => {
+    if (!user?.id) return;
+    fetch("/api/growth")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.level != null && d?.xp != null)
+          setGrowth({
+            level: d.level,
+            xp: d.xp,
+            insight: d.insight ?? 0,
+            privileges: Array.isArray(d.privileges) ? d.privileges : [],
+          });
+        else setGrowth(null);
+      })
+      .catch(() => setGrowth(null));
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setGrowth(null);
+      return;
+    }
+    fetchGrowth();
+  }, [user?.id, fetchGrowth]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -377,6 +403,13 @@ export default function NingYuanGame() {
         setTimeout(() => setResonanceWhisper(null), 10000);
       }
       setDisplayRatio(pickRatio());
+      if (user?.id) {
+        fetch("/api/growth/xp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 2, source: "question" }),
+        }).catch(() => {});
+      }
       setTimeout(() => setShowResult(true), 400);
       setTimeout(() => {
         const nextIndex = currentIndex + 1;
@@ -426,6 +459,7 @@ export default function NingYuanGame() {
       total,
       stageStartStats,
       stats,
+      user?.id,
     ]
   );
 
@@ -442,6 +476,7 @@ export default function NingYuanGame() {
     setShowSoulMateLayer(false);
     const next = pendingSoulMateNextIndex;
     setPendingSoulMateNextIndex(null);
+    fetchGrowth();
     if (next != null) {
       if (next >= total) {
         setShowFinalReport(true);
@@ -452,7 +487,7 @@ export default function NingYuanGame() {
         setLastChangedKeys([]);
       }
     }
-  }, [pendingSoulMateNextIndex, total]);
+  }, [pendingSoulMateNextIndex, total, fetchGrowth]);
 
   const restart = useCallback(() => {
     if (typeof window !== "undefined") try {
@@ -706,6 +741,18 @@ export default function NingYuanGame() {
         </span>
       )}
       <div className="absolute right-3 top-3 z-10 flex items-center gap-3 md:right-4 md:top-4">
+        {growth && user && (
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-zinc-500">Lv.{growth.level}</span>
+            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="h-full bg-white/40"
+                style={{ width: `${growth.xp % 100}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-zinc-500">洞察 {growth.insight}</span>
+          </div>
+        )}
         {user ? (
           <>
             <a href="/chat" className="text-[10px] text-zinc-500 underline hover:text-white">
@@ -812,6 +859,10 @@ export default function NingYuanGame() {
                   登录后解锁与你相似的人
                   <button type="button" onClick={() => setShowAuthModal(true)} className="mt-2 block w-full rounded border border-white/20 py-1.5 text-[10px] text-white/70 hover:bg-white/5">登录</button>
                 </p>
+              ) : !growth?.privileges?.includes("view_similar_souls") ? (
+                <p className="text-center text-xs text-zinc-500">
+                  Lv.2 解锁与你相似的人
+                </p>
               ) : similarLoading ? (
                 <p className="text-center text-xs text-zinc-500">加载中...</p>
               ) : similarMaxTier == null ? (
@@ -890,6 +941,8 @@ export default function NingYuanGame() {
                   登录后解锁与你相似的人
                   <button type="button" onClick={() => { setShowAuthModal(true); setSimilarOpen(false); }} className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/5">登录</button>
                 </p>
+              ) : !growth?.privileges?.includes("view_similar_souls") ? (
+                <p className="text-center text-xs text-zinc-500">Lv.2 解锁与你相似的人</p>
               ) : similarLoading ? (
                 <p className="text-center text-xs text-zinc-500">加载中...</p>
               ) : similarMaxTier == null ? (

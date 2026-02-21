@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { STAT_KEYS, statsToVector, cosineSimilarity, toResonancePercent } from "@/lib/stats";
+import { awardXp } from "@/lib/growth/xp";
+import { XP_PER_CHECKPOINT } from "@/lib/growth/constants";
 import { NextResponse } from "next/server";
 
 const TIERS = [20, 40, 60, 80, 100] as const;
@@ -80,6 +82,12 @@ export async function POST(request: Request) {
       },
       { onConflict: "user_id,tier" }
     );
+
+    try {
+      await awardXp(user.id, XP_PER_CHECKPOINT, "checkpoint");
+    } catch (_) {
+      // XP 奖励失败不阻塞主流程
+    }
 
     const matches = top3.map((m) => ({
       soul_id: m.soul_id,
