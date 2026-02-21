@@ -48,10 +48,35 @@ create table if not exists public.messages (
   created_at timestamptz default now()
 );
 
+-- Groups (群聊)
+create table if not exists public.groups (
+  id uuid primary key default gen_random_uuid(),
+  name text not null default '未命名群聊',
+  created_by_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.group_members (
+  group_id uuid not null references public.groups(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  joined_at timestamptz default now(),
+  primary key (group_id, user_id)
+);
+
+create table if not exists public.group_messages (
+  id uuid primary key default gen_random_uuid(),
+  group_id uuid not null references public.groups(id) on delete cascade,
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  content text not null,
+  created_at timestamptz default now()
+);
+
 create index if not exists idx_play_sessions_user on public.play_sessions(user_id);
 create index if not exists idx_soul_matches_user_tier on public.soul_matches(user_id, tier);
 create index if not exists idx_conversations_users on public.conversations(user_a_id, user_b_id);
 create index if not exists idx_messages_conversation on public.messages(conversation_id);
+create index if not exists idx_group_members_user on public.group_members(user_id);
+create index if not exists idx_group_messages_group on public.group_messages(group_id);
 
 -- RLS: enable and add policies as needed (e.g. users can read/write own profiles, own play_sessions, etc.)
 alter table public.profiles enable row level security;
@@ -59,6 +84,9 @@ alter table public.play_sessions enable row level security;
 alter table public.soul_matches enable row level security;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
+alter table public.groups enable row level security;
+alter table public.group_members enable row level security;
+alter table public.group_messages enable row level security;
 
 create policy "Users can read own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
@@ -85,4 +113,28 @@ create policy "Users can insert messages in accepted conversations" on public.me
     select 1 from public.conversations c
     where c.id = conversation_id and c.status = 'accepted' and (c.user_a_id = auth.uid() or c.user_b_id = auth.uid())
   )
+);
+
+-- Groups: creators can insert; members can read/update (e.g. name). For simplicity, only creators can update.
+create policy "Users can read groups they are in" on public.groups for select using (
+  exists (select 1 from public.group_members gm where gm.group_id = id and gm.user_id = auth.uid())
+);
+create policy "Users can insert groups" on public.groups for insert with check (auth.uid() = created_by_id);
+create policy "Creators can update group" on public.groups for update using (auth.uid() = created_by_id);
+
+create policy "Members can read group_members of their groups" on public.group_members for select using (
+  exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid())
+);
+create policy "Group creators or members can insert (add members)" on public.group_members for insert with check (
+  exists (select 1 from public.groups g where g.id = group_id and g.created_by_id = auth.uid())
+  or exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid())
+);
+create policy "Users can delete themselves from group" on public.group_members for delete using (auth.uid() = user_id);
+
+create policy "Members can read group_messages of their groups" on public.group_messages for select using (
+  exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid())
+);
+create policy "Members can insert group_messages" on public.group_messages for insert with check (
+  auth.uid() = sender_id and
+  exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid())
 );
