@@ -45,14 +45,14 @@ export async function POST(request: Request) {
       ? (body.member_soul_ids as string[]).filter((s): s is string => typeof s === "string").slice(0, 99)
       : [];
 
-    const { data: group, error: groupErr } = await supabase
+    const admin = createAdminClient();
+    const { data: group, error: groupErr } = await admin
       .from("groups")
       .insert({ name, created_by_id: user.id })
       .select("id")
       .single();
     if (groupErr || !group) return NextResponse.json({ error: groupErr?.message ?? "创建失败" }, { status: 500 });
 
-    const admin = createAdminClient();
     const { error: creatorMemberErr } = await admin
       .from("group_members")
       .insert({ group_id: group.id, user_id: user.id });
