@@ -8,6 +8,7 @@ import {
   RESONANCE_POSITIONS,
   type ResonancePosition,
 } from "@/constants/resonance";
+import { xpToLevel } from "@/lib/growth/level";
 
 const STAT_KEYS = [
   "金钱",
@@ -39,6 +40,10 @@ const STAGE_TITLES: Record<string, { title: string; phrase: string }> = {
 
 const SAVE_KEY = "ningyuan_progress";
 const SOUL_ID_KEY = "soul_id";
+
+/** 每次选择奖励 */
+const REWARD_XP = 10;
+const REWARD_INSIGHT = 2;
 
 /** 题目加减分强度系数，大于 1 时变化更剧烈 */
 const IMPACT_MULTIPLIER = 1.5;
@@ -170,6 +175,11 @@ export default function NingYuanGame() {
   const [similarMatches, setSimilarMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
   const [growth, setGrowth] = useState<{ level: number; xp: number; insight: number; privileges: string[] } | null>(null);
+  const [rewardToast, setRewardToast] = useState<{ xp: number; insight: number } | null>(null);
+  const [levelUpData, setLevelUpData] = useState<{ level: number; newPrivileges: { key: string; name: string }[] } | null>(null);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [localXp, setLocalXp] = useState(0);
+  const [localInsight, setLocalInsight] = useState(0);
   const statsRef = useRef(stats);
   const prevTopAttrRef = useRef<string | null>(null);
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
@@ -187,6 +197,8 @@ export default function NingYuanGame() {
           questionOrder?: number[];
           completed?: boolean;
           impactHistory?: Record<string, number>[];
+          localXp?: number;
+          localInsight?: number;
         };
         if (
           Array.isArray(data.questionOrder) &&
@@ -202,6 +214,8 @@ export default function NingYuanGame() {
           if (Array.isArray(data.impactHistory)) {
             impactHistoryRef.current = data.impactHistory;
           }
+          if (typeof data.localXp === "number" && data.localXp >= 0) setLocalXp(data.localXp);
+          if (typeof data.localInsight === "number" && data.localInsight >= 0) setLocalInsight(data.localInsight);
           if (completed) setShowFinalReport(true);
           return;
         }
@@ -221,10 +235,12 @@ export default function NingYuanGame() {
           questionOrder,
           completed: showFinalReport,
           impactHistory: impactHistoryRef.current,
+          localXp,
+          localInsight,
         })
       );
     } catch (_) {}
-  }, [currentIndex, stats, questionOrder, showFinalReport]);
+  }, [currentIndex, stats, questionOrder, showFinalReport, localXp, localInsight]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -403,13 +419,53 @@ export default function NingYuanGame() {
         setTimeout(() => setResonanceWhisper(null), 10000);
       }
       setDisplayRatio(pickRatio());
+
+      setRewardToast({ xp: REWARD_XP, insight: REWARD_INSIGHT });
+      setTimeout(() => setRewardToast(null), 1500);
+
       if (user?.id) {
-        fetch("/api/growth/xp", {
+        const prevLevel = growth?.level ?? 1;
+        const prevPrivs = new Set(growth?.privileges ?? []);
+        fetch("/api/progress/update", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: 2, source: "question" }),
-        }).catch(() => {});
+          body: JSON.stringify({ xp_delta: REWARD_XP, insight_delta: REWARD_INSIGHT }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d?.level != null && d?.xp != null) {
+              const newPrivs = Array.isArray(d.privileges) ? d.privileges : [];
+              const privKeys = newPrivs.map((p: { key: string; name?: string }) => p.key);
+              setGrowth({
+                level: d.level,
+                xp: d.xp,
+                insight: d.insight ?? 0,
+                privileges: privKeys,
+              });
+              if (d.level > prevLevel) {
+                const added = newPrivs.filter((p: { key: string; name?: string }) => !prevPrivs.has(p.key));
+                setLevelUpData({
+                  level: d.level,
+                  newPrivileges: added.map((p: { key: string; name?: string }) => ({ key: p.key, name: p.name ?? p.key })),
+                });
+                setShowLevelUpModal(true);
+              }
+            }
+          })
+          .catch(() => {});
+      } else {
+        const prevLevel = xpToLevel(localXp);
+        const nextXp = localXp + REWARD_XP;
+        const nextInsight = localInsight + REWARD_INSIGHT;
+        setLocalXp(nextXp);
+        setLocalInsight(nextInsight);
+        const newLevel = xpToLevel(nextXp);
+        if (newLevel > prevLevel) {
+          setLevelUpData({ level: newLevel, newPrivileges: [] });
+          setShowLevelUpModal(true);
+        }
       }
+
       setTimeout(() => setShowResult(true), 400);
       setTimeout(() => {
         const nextIndex = currentIndex + 1;
@@ -460,6 +516,9 @@ export default function NingYuanGame() {
       stageStartStats,
       stats,
       user?.id,
+      growth?.level,
+      growth?.privileges,
+      localXp,
     ]
   );
 
@@ -506,6 +565,11 @@ export default function NingYuanGame() {
     setSelected(null);
     setShowResult(false);
     setLastChangedKeys([]);
+    setLocalXp(0);
+    setLocalInsight(0);
+    setRewardToast(null);
+    setLevelUpData(null);
+    setShowLevelUpModal(false);
   }, []);
 
   if (questionOrder === null) {
@@ -638,6 +702,13 @@ export default function NingYuanGame() {
           transition={{ duration: 0.3 }}
         />
       </div>
+
+      {/* 奖励 Toast：+XP +Insight，1.5s */}
+      <AnimatePresence>
+        {rewardToast && (
+          <RewardToast xp={rewardToast.xp} insight={rewardToast.insight} />
+        )}
+      </AnimatePresence>
 
       {/* 情境区 */}
       <div className="absolute left-0 right-0 top-[10%] z-10 px-4 text-center pointer-events-none md:top-[16%] md:px-6">
@@ -835,6 +906,20 @@ export default function NingYuanGame() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 升级 Modal：新等级 + 新解锁权限 */}
+      <AnimatePresence>
+        {showLevelUpModal && levelUpData && (
+          <LevelUpModal
+            level={levelUpData.level}
+            newPrivileges={levelUpData.newPrivileges}
+            onClose={() => {
+              setShowLevelUpModal(false);
+              setLevelUpData(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </motion.main>
 
       {/* 与你相似：桌面侧栏 + 移动端浮动按钮与抽屉 */}
@@ -1002,6 +1087,64 @@ export default function NingYuanGame() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function RewardToast({ xp, insight }: { xp: number; insight: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="fixed left-1/2 top-14 z-40 -translate-x-1/2 rounded border border-white/20 bg-zinc-900/95 px-4 py-2 text-center shadow-lg"
+    >
+      <span className="text-xs text-white/90">+{xp} XP</span>
+      <span className="mx-2 text-zinc-600">·</span>
+      <span className="text-xs text-white/90">+{insight} 洞察</span>
+    </motion.div>
+  );
+}
+
+function LevelUpModal({
+  level,
+  newPrivileges,
+  onClose,
+}: {
+  level: number;
+  newPrivileges: { key: string; name: string }[];
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
+    >
+      <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">升级</p>
+      <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 md:text-2xl lg:text-3xl">
+        Lv.{level}
+      </h2>
+      {newPrivileges.length > 0 && (
+        <div className="mt-6 max-w-sm space-y-2 text-center">
+          <p className="text-xs text-zinc-500">新解锁</p>
+          <ul className="space-y-1 text-sm text-white/80">
+            {newPrivileges.map((p) => (
+              <li key={p.key}>{p.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <motion.button
+        type="button"
+        onClick={onClose}
+        className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+        whileTap={{ scale: 0.98 }}
+      >
+        继续
+      </motion.button>
+    </motion.div>
   );
 }
 
