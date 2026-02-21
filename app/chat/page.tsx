@@ -17,7 +17,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ soul_id: string } | null>(undefined);
+  const [user, setUser] = useState<{ soul_id: string } | null | undefined>(undefined);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addFriendId, setAddFriendId] = useState("");
   const [addFriendError, setAddFriendError] = useState("");
