@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
+
+type SearchHit = { soul_id: string; display_name: string | null };
 
 type Conversation = { id: string; other_soul_id: string; other_display_name?: string | null; status: string; created_at: string };
 type Message = { id: string; sender_soul_id: string; is_me: boolean; content: string; created_at: string };
@@ -16,6 +18,13 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ soul_id: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [addFriendId, setAddFriendId] = useState("");
+  const [addFriendError, setAddFriendError] = useState("");
+  const [addFriendSuccess, setAddFriendSuccess] = useState(false);
+  const [addFriendLoading, setAddFriendLoading] = useState(false);
+  const [addFriendSearchResults, setAddFriendSearchResults] = useState<SearchHit[]>([]);
+  const [addFriendSearchLoading, setAddFriendSearchLoading] = useState(false);
+  const addFriendSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchUser = useCallback(() => {
     fetch("/api/auth/me")
@@ -36,6 +45,27 @@ export default function ChatPage() {
     fetchUser();
     fetchConversations();
   }, [fetchUser, fetchConversations]);
+
+  useEffect(() => {
+    const q = addFriendId.trim();
+    if (!q) {
+      setAddFriendSearchResults([]);
+      return;
+    }
+    if (addFriendSearchTimerRef.current) clearTimeout(addFriendSearchTimerRef.current);
+    addFriendSearchTimerRef.current = setTimeout(() => {
+      addFriendSearchTimerRef.current = null;
+      setAddFriendSearchLoading(true);
+      fetch(`/api/profiles/search?q=${encodeURIComponent(q)}`)
+        .then((r) => r.json())
+        .then((d) => setAddFriendSearchResults(d?.list ?? []))
+        .catch(() => setAddFriendSearchResults([]))
+        .finally(() => setAddFriendSearchLoading(false));
+    }, 300);
+    return () => {
+      if (addFriendSearchTimerRef.current) clearTimeout(addFriendSearchTimerRef.current);
+    };
+  }, [addFriendId]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -87,6 +117,47 @@ export default function ChatPage() {
     window.location.href = "/";
   }, []);
 
+  const normalizeSoulId = (raw: string): string => {
+    const t = raw.trim();
+    if (/^\d{4}$/.test(t)) return `NO.NY-${t}-X`;
+    if (/^NO\.NY-\d{4}-[AX]$/i.test(t)) return t.toUpperCase().replace("no.ny-", "NO.NY-");
+    return t;
+  };
+
+  const handleAddFriend = useCallback(() => {
+    const raw = addFriendId.trim();
+    if (!raw) {
+      setAddFriendError("请输入灵魂 ID");
+      return;
+    }
+    const target = normalizeSoulId(raw);
+    if (user?.soul_id && target === user.soul_id) {
+      setAddFriendError("不能添加自己");
+      return;
+    }
+    setAddFriendError("");
+    setAddFriendSuccess(false);
+    setAddFriendLoading(true);
+    fetch("/api/conversations/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target_soul_id: target }),
+    })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setAddFriendError((data?.error as string) ?? "请求失败");
+          return;
+        }
+        setAddFriendId("");
+        setAddFriendSuccess(true);
+        fetchConversations();
+        setTimeout(() => setAddFriendSuccess(false), 3000);
+      })
+      .catch(() => setAddFriendError("网络错误"))
+      .finally(() => setAddFriendLoading(false));
+  }, [addFriendId, user?.soul_id, fetchConversations]);
+
   const selected = conversations.find((c) => c.id === selectedId);
 
   if (!user) {
@@ -107,6 +178,50 @@ export default function ChatPage() {
     setSelectedId(id);
     setDrawerOpen(false);
   };
+
+  const AddFriendSection = () => (
+    <div className="shrink-0 border-b border-zinc-800 p-3">
+      <p className="text-[10px] text-zinc-500 mb-2">搜 ID 加好友</p>
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          value={addFriendId}
+          onChange={(e) => { setAddFriendId(e.target.value); setAddFriendError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
+          placeholder="输入灵魂 ID，如 NO.NY-7612-X 或 7612"
+          className="flex-1 min-w-0 rounded-lg border border-white/20 bg-zinc-900/80 px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
+          maxLength={20}
+        />
+        <button
+          type="button"
+          onClick={handleAddFriend}
+          disabled={addFriendLoading || !addFriendId.trim()}
+          className="shrink-0 rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/90 bg-white/10 hover:bg-white/15 disabled:opacity-50 touch-manipulation"
+        >
+          {addFriendLoading ? "…" : "请求连接"}
+        </button>
+      </div>
+      {addFriendSearchLoading ? <p className="mt-1.5 text-[10px] text-zinc-500">搜索中...</p> : null}
+      {!addFriendSearchLoading && addFriendSearchResults.length > 0 ? (
+        <ul className="mt-1.5 max-h-[160px] overflow-y-auto rounded-lg border border-white/15 bg-zinc-900/90 space-y-0.5 p-1">
+          {addFriendSearchResults.map((hit) => (
+            <li key={hit.soul_id}>
+              <button
+                type="button"
+                onClick={() => { setAddFriendId(hit.soul_id); setAddFriendSearchResults([]); }}
+                className="w-full text-left rounded-md px-3 py-2 text-xs text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
+              >
+                <span className="font-medium">{hit.display_name || hit.soul_id}</span>
+                {hit.display_name ? <span className="ml-1.5 font-mono text-[10px] text-zinc-500">{hit.soul_id}</span> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {addFriendError ? <p className="mt-1.5 text-[10px] text-red-400">{addFriendError}</p> : null}
+      {addFriendSuccess ? <p className="mt-1.5 text-[10px] text-green-400">已发送请求</p> : null}
+    </div>
+  );
 
   const ConversationList = () => (
     <>
@@ -172,6 +287,7 @@ export default function ChatPage() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 桌面：左侧会话列表 */}
         <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto min-h-0">
+          <AddFriendSection />
           <ConversationList />
         </aside>
 
@@ -195,6 +311,7 @@ export default function ChatPage() {
                 className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-zinc-800 overflow-y-auto bg-black md:hidden"
                 onClick={(e) => e.stopPropagation()}
               >
+                <AddFriendSection />
                 <div className="p-3 border-b border-zinc-800 text-xs text-zinc-500">切换会话</div>
                 <ConversationList />
               </motion.aside>
@@ -277,6 +394,7 @@ export default function ChatPage() {
             <div className="flex flex-1 flex-col min-h-0">
               {/* 移动端：无选中时主区域显示会话列表 */}
               <div className="flex-1 overflow-y-auto md:hidden">
+                <AddFriendSection />
                 <ConversationList />
               </div>
               {/* 桌面：无选中时显示提示 */}
