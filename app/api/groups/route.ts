@@ -52,20 +52,27 @@ export async function POST(request: Request) {
       .single();
     if (groupErr || !group) return NextResponse.json({ error: groupErr?.message ?? "创建失败" }, { status: 500 });
 
-    await supabase.from("group_members").insert({ group_id: group.id, user_id: user.id });
+    const admin = createAdminClient();
+    const { error: creatorMemberErr } = await admin
+      .from("group_members")
+      .insert({ group_id: group.id, user_id: user.id });
+    if (creatorMemberErr) return NextResponse.json({ error: `加入群失败: ${creatorMemberErr.message}` }, { status: 500 });
 
     if (member_soul_ids.length > 0) {
-      const admin = createAdminClient();
       const { data: profiles } = await admin
         .from("profiles")
         .select("id")
         .in("soul_id", member_soul_ids);
       const toAdd = (profiles ?? []).map((p) => ({ group_id: group.id, user_id: p.id })).filter((r) => r.user_id !== user.id);
-      if (toAdd.length) await supabase.from("group_members").insert(toAdd);
+      if (toAdd.length) {
+        const { error: addErr } = await admin.from("group_members").insert(toAdd);
+        if (addErr) return NextResponse.json({ error: `拉人进群失败: ${addErr.message}` }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ group_id: group.id });
-  } catch {
-    return NextResponse.json({ error: "服务器错误" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "服务器错误";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
