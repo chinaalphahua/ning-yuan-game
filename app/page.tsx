@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { questions, Impact } from "./questions";
 import {
@@ -179,6 +180,7 @@ export default function NingYuanGame() {
   const [rewardToast, setRewardToast] = useState<{ xp: number; points: number; insight: number } | null>(null);
   const [levelUpData, setLevelUpData] = useState<{ level: number; newPrivileges: { key: string; name: string }[] } | null>(null);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [showSoulMatchHint, setShowSoulMatchHint] = useState(false);
   const [localXp, setLocalXp] = useState(0);
   const [localInsight, setLocalInsight] = useState(0);
   const statsRef = useRef(stats);
@@ -186,6 +188,20 @@ export default function NingYuanGame() {
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
   const resonanceLastShownAtRef = useRef<number>(-999);
   statsRef.current = stats;
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const open = searchParams.get("open");
+    if (open === "similar") {
+      setSimilarOpen(true);
+      if (typeof window !== "undefined") window.history.replaceState(null, "", "/");
+    } else if (open === "soul_match") {
+      setShowSoulMatchHint(true);
+      if (typeof window !== "undefined") window.history.replaceState(null, "", "/");
+      const t = setTimeout(() => setShowSoulMatchHint(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -714,6 +730,22 @@ export default function NingYuanGame() {
       <AnimatePresence>
         {rewardToast && (
           <RewardToast xp={rewardToast.xp} points={rewardToast.points} insight={rewardToast.insight} />
+        )}
+      </AnimatePresence>
+
+      {/* 灵魂匹配说明 Toast：从个人主页/成长进度点击「查看灵魂匹配」跳转时展示 */}
+      <AnimatePresence>
+        {showSoulMatchHint && (
+          <motion.div
+            key="soul-match-hint"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="fixed left-1/2 top-14 z-40 -translate-x-1/2 max-w-[90vw] rounded border border-white/20 bg-zinc-900/95 px-4 py-3 text-center text-xs text-white/90 shadow-lg"
+          >
+            在完成第 20/40/60/80/100 题时会看到灵魂匹配 · 继续答题即可
+          </motion.div>
         )}
       </AnimatePresence>
 

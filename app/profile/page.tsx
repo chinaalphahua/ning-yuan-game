@@ -9,6 +9,7 @@ import ProfileHeader from "./components/ProfileHeader";
 import DataPanel from "./components/DataPanel";
 import InsightTimeline from "./components/InsightTimeline";
 import BadgeWall from "./components/BadgeWall";
+import SimilarSoulsBlock from "./components/SimilarSoulsBlock";
 import PrivilegeSection from "./components/PrivilegeSection";
 
 type ProfileData = {
@@ -98,6 +99,11 @@ export default function ProfilePage() {
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.3 }}>
           <BadgeWall badges={data.badges} achievements={data.achievements} />
+        </motion.div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.35 }}>
+          <SimilarSoulsBlock
+            hasPrivilege={data.privileges.some((p) => p.key === "view_similar_souls")}
+          />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.4 }}>
           <PrivilegeSection privileges={data.privileges} />
