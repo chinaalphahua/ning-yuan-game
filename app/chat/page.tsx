@@ -25,6 +25,7 @@ export default function ChatPage() {
   const [addFriendLoading, setAddFriendLoading] = useState(false);
   const [addFriendSearchResults, setAddFriendSearchResults] = useState<SearchHit[]>([]);
   const [addFriendSearchLoading, setAddFriendSearchLoading] = useState(false);
+  const [addFriendSearchError, setAddFriendSearchError] = useState("");
   const addFriendSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [chatMode, setChatMode] = useState<"dm" | "group">("dm");
   const [groups, setGroups] = useState<Group[]>([]);
@@ -78,16 +79,29 @@ export default function ChatPage() {
     const q = addFriendId.trim();
     if (!q) {
       setAddFriendSearchResults([]);
+      setAddFriendSearchError("");
       return;
     }
     if (addFriendSearchTimerRef.current) clearTimeout(addFriendSearchTimerRef.current);
     addFriendSearchTimerRef.current = setTimeout(() => {
       addFriendSearchTimerRef.current = null;
       setAddFriendSearchLoading(true);
+      setAddFriendSearchError("");
       fetch(`/api/profiles/search?q=${encodeURIComponent(q)}`)
-        .then((r) => r.json())
-        .then((d) => setAddFriendSearchResults(d?.list ?? []))
-        .catch(() => setAddFriendSearchResults([]))
+        .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+        .then(({ ok, data }) => {
+          if (!ok) {
+            setAddFriendSearchError((data?.error as string) ?? "搜索失败，请稍后再试");
+            setAddFriendSearchResults([]);
+            return;
+          }
+          setAddFriendSearchError("");
+          setAddFriendSearchResults(data?.list ?? []);
+        })
+        .catch(() => {
+          setAddFriendSearchError("搜索失败，请稍后再试");
+          setAddFriendSearchResults([]);
+        })
         .finally(() => setAddFriendSearchLoading(false));
     }, 300);
     return () => {
@@ -315,7 +329,7 @@ export default function ChatPage() {
           value={addFriendId}
           onChange={(e) => { setAddFriendId(e.target.value); setAddFriendError(""); }}
           onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
-          placeholder="输入灵魂 ID，如 NO.NY-7612-X 或 7612"
+          placeholder="输入灵魂 ID 或昵称，如 NO.NY-7612-X"
           className="flex-1 min-w-0 rounded-lg border border-white/20 bg-zinc-900/80 px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
           maxLength={20}
         />
@@ -329,6 +343,10 @@ export default function ChatPage() {
         </button>
       </div>
       {addFriendSearchLoading ? <p className="mt-1.5 text-[10px] text-zinc-500">搜索中...</p> : null}
+      {!addFriendSearchLoading && addFriendSearchError ? <p className="mt-1.5 text-[10px] text-red-400">{addFriendSearchError}</p> : null}
+      {!addFriendSearchLoading && !addFriendSearchError && addFriendId.trim() && addFriendSearchResults.length === 0 ? (
+        <p className="mt-1.5 text-[10px] text-zinc-500">未找到匹配的灵魂 ID 或昵称</p>
+      ) : null}
       {!addFriendSearchLoading && addFriendSearchResults.length > 0 ? (
         <ul className="mt-1.5 max-h-[160px] overflow-y-auto rounded-lg border border-white/15 bg-zinc-900/90 space-y-0.5 p-1">
           {addFriendSearchResults.map((hit) => (

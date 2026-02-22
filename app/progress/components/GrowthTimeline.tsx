@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { getLevelTitle } from "@/constants/levelTitles";
+import { getPrivilegeLink } from "@/constants/privilegeLinks";
 import { PRIVILEGES_BY_LEVEL } from "@/constants/privilegesByLevel";
 import { motion } from "framer-motion";
 
@@ -44,9 +46,20 @@ export default function GrowthTimeline({ level, unlockedPrivilegeKeys }: GrowthT
                   </p>
                   {unlocked.length > 0 && (
                     <ul className="mt-2 space-y-1 text-xs text-zinc-600">
-                      {unlocked.map((p) => (
-                        <li key={p.key}>{p.name}</li>
-                      ))}
+                      {unlocked.map((p) => {
+                        const link = getPrivilegeLink(p.key);
+                        return (
+                          <li key={p.key}>
+                            {link ? (
+                              <Link href={link.href} className="text-zinc-600 transition hover:text-white/80 hover:underline">
+                                {link.label}
+                              </Link>
+                            ) : (
+                              p.name
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>

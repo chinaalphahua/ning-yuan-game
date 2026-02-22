@@ -13,6 +13,7 @@ export default function SimilarSoulsBlock({ hasPrivilege }: SimilarSoulsBlockPro
   const [maxTier, setMaxTier] = useState<number | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
+  const [requestError, setRequestError] = useState("");
 
   useEffect(() => {
     if (!hasPrivilege) return;
@@ -54,6 +55,7 @@ export default function SimilarSoulsBlock({ hasPrivilege }: SimilarSoulsBlockPro
         <p className="text-sm text-zinc-600">暂无匹配</p>
       ) : (
         <>
+          {requestError ? <p className="mb-2 text-[10px] text-red-400">{requestError}</p> : null}
           <ul className="space-y-3">
             {matches.slice(0, 3).map((m) => (
               <li
@@ -67,13 +69,22 @@ export default function SimilarSoulsBlock({ hasPrivilege }: SimilarSoulsBlockPro
                 <button
                   type="button"
                   onClick={() => {
+                    setRequestError("");
                     fetch("/api/conversations/request", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ target_soul_id: m.soul_id }),
-                    }).then(() => {
-                      window.location.href = "/chat";
-                    });
+                    })
+                      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                      .then(({ ok, data }) => {
+                        if (!ok) {
+                          setRequestError((data?.error as string) ?? "请求失败");
+                          return;
+                        }
+                        setRequestError("");
+                        window.location.href = "/chat";
+                      })
+                      .catch(() => setRequestError("请求失败，请稍后再试"));
                   }}
                   className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 transition hover:bg-white/10"
                 >

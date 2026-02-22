@@ -17,10 +17,12 @@ export async function GET(request: Request) {
     const admin = createAdminClient();
     const { data: myProfile } = await admin.from("profiles").select("id").eq("id", user.id).single();
 
+    const escaped = q.replace(/"/g, '""');
+    const pattern = `"%${escaped}%"`;
     const { data: rows } = await admin
       .from("profiles")
       .select("id, soul_id, display_name")
-      .ilike("soul_id", `%${q}%`)
+      .or(`soul_id.ilike.${pattern},display_name.ilike.${pattern}`)
       .limit(20);
 
     const myId = myProfile?.id ?? "";

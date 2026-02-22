@@ -181,6 +181,7 @@ export function NingYuanGame() {
   const [levelUpData, setLevelUpData] = useState<{ level: number; newPrivileges: { key: string; name: string }[] } | null>(null);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [showSoulMatchHint, setShowSoulMatchHint] = useState(false);
+  const [requestConnectionError, setRequestConnectionError] = useState("");
   const [localXp, setLocalXp] = useState(0);
   const [localInsight, setLocalInsight] = useState(0);
   const statsRef = useRef(stats);
@@ -907,6 +908,8 @@ export function NingYuanGame() {
             isLoggedIn={!!user}
             onContinue={closeSoulMateLayer}
             onOpenAuth={() => setShowAuthModal(true)}
+            requestError={requestConnectionError}
+            setRequestError={setRequestConnectionError}
           />
         )}
       </AnimatePresence>
@@ -1005,27 +1008,41 @@ export function NingYuanGame() {
               ) : similarMatches.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500">暂无匹配</p>
               ) : (
-                <ul className="space-y-2">
-                  {similarMatches.slice(0, 3).map((m) => (
-                    <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-2">
-                      <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
-                      {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          fetch("/api/conversations/request", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ target_soul_id: m.soul_id }),
-                          }).then(() => window.open("/chat", "_self"));
-                        }}
-                        className="mt-1.5 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
-                      >
-                        请求连接
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  {requestConnectionError ? <p className="mb-2 text-center text-[10px] text-red-400">{requestConnectionError}</p> : null}
+                  <ul className="space-y-2">
+                    {similarMatches.slice(0, 3).map((m) => (
+                      <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-2">
+                        <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
+                        {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRequestConnectionError("");
+                            fetch("/api/conversations/request", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ target_soul_id: m.soul_id }),
+                            })
+                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                              .then(({ ok, data }) => {
+                                if (!ok) {
+                                  setRequestConnectionError((data?.error as string) ?? "请求失败");
+                                  return;
+                                }
+                                setRequestConnectionError("");
+                                window.open("/chat", "_self");
+                              })
+                              .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                          }}
+                          className="mt-1.5 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
+                        >
+                          请求连接
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
           )}
@@ -1085,27 +1102,41 @@ export function NingYuanGame() {
               ) : similarMatches.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500">暂无匹配</p>
               ) : (
-                <ul className="mt-2 space-y-3">
-                  {similarMatches.slice(0, 3).map((m) => (
-                    <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-3">
-                      <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
-                      {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          fetch("/api/conversations/request", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ target_soul_id: m.soul_id }),
-                          }).then(() => window.open("/chat", "_self"));
-                        }}
-                        className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
-                      >
-                        请求连接
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  {requestConnectionError ? <p className="mb-2 text-center text-[10px] text-red-400">{requestConnectionError}</p> : null}
+                  <ul className="mt-2 space-y-3">
+                    {similarMatches.slice(0, 3).map((m) => (
+                      <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-3">
+                        <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
+                        {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRequestConnectionError("");
+                            fetch("/api/conversations/request", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ target_soul_id: m.soul_id }),
+                            })
+                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                              .then(({ ok, data }) => {
+                                if (!ok) {
+                                  setRequestConnectionError((data?.error as string) ?? "请求失败");
+                                  return;
+                                }
+                                setRequestConnectionError("");
+                                window.open("/chat", "_self");
+                              })
+                              .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                          }}
+                          className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
+                        >
+                          请求连接
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
           </motion.div>
@@ -1214,12 +1245,16 @@ function SoulMateLayer({
   isLoggedIn,
   onContinue,
   onOpenAuth,
+  requestError,
+  setRequestError,
 }: {
   tier: number;
   matches: { soul_id: string; resonance: number; stats?: Record<string, number> }[];
   isLoggedIn: boolean;
   onContinue: () => void;
   onOpenAuth?: () => void;
+  requestError?: string;
+  setRequestError?: (msg: string) => void;
 }) {
   const defaultStats = Object.fromEntries(STAT_KEYS.map((k) => [k, 50]));
   return (
@@ -1243,6 +1278,7 @@ function SoulMateLayer({
           )}
         </p>
       )}
+      {requestError ? <p className="mt-2 text-center text-xs text-red-400">{requestError}</p> : null}
       <div className="mt-6 flex flex-wrap items-stretch justify-center gap-4 md:gap-6">
         {(matches.length ? matches : [{ soul_id: "—", resonance: 0 }, { soul_id: "—", resonance: 0 }, { soul_id: "—", resonance: 0 }]).slice(0, 3).map((m, i) => (
           <motion.div
@@ -1265,11 +1301,22 @@ function SoulMateLayer({
                 onClick={() => {
                   if (!isLoggedIn) onOpenAuth?.();
                   else {
+                    setRequestError?.("");
                     fetch("/api/conversations/request", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ target_soul_id: m.soul_id }),
-                    }).then(() => window.open("/chat", "_self"));
+                    })
+                      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                      .then(({ ok, data }) => {
+                        if (!ok) {
+                          setRequestError?.((data?.error as string) ?? "请求失败");
+                          return;
+                        }
+                        setRequestError?.("");
+                        window.open("/chat", "_self");
+                      })
+                      .catch(() => setRequestError?.("请求失败，请稍后再试"));
                   }
                 }}
                 className="mt-2 rounded border border-white/20 px-2 py-1 text-[10px] text-white/70 hover:bg-white/10"
