@@ -8,7 +8,7 @@ interface ProfileLayoutProps {
 
 export default function ProfileLayout({ children }: ProfileLayoutProps) {
   return (
-    <div className="relative flex min-h-screen min-h-[100dvh] flex-col bg-[#0a0a0a] text-white">
+    <div className="relative flex h-screen h-[100dvh] flex-col bg-[#0a0a0a] text-white">
       <div className="pointer-events-none fixed inset-0 overflow-hidden bg-[#0a0a0a]">
         <svg className="absolute inset-0 h-full w-full opacity-[0.12]" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
@@ -29,7 +29,7 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
           成长进度
         </Link>
       </header>
-      <main className="relative z-10 flex flex-1 flex-col overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 md:px-6 md:pt-12">
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 md:px-6 md:pt-12">
         {children}
       </main>
     </div>
