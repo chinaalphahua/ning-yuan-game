@@ -37,9 +37,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full min-h-[100dvh] overflow-hidden">
+    <html lang="zh-CN" className="h-full min-h-[100dvh] overflow-y-auto">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSC.variable} h-full min-h-[100dvh] overflow-hidden antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSC.variable} h-full min-h-[100dvh] overflow-y-auto antialiased`}
       >
         {children}
       </body>
