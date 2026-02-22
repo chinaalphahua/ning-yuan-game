@@ -173,8 +173,9 @@ export function NingYuanGame() {
   const [pendingSoulMateNextIndex, setPendingSoulMateNextIndex] = useState<number | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
-  const [similarMaxTier, setSimilarMaxTier] = useState<number | null>(null);
-  const [similarMatches, setSimilarMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
+  type SimilarMatch = { soul_id: string; display_name?: string | null; resonance: number; stats?: Record<string, number> };
+  type SimilarHistoryEntry = { tier: number; created_at: string; matches: SimilarMatch[] };
+  const [similarHistory, setSimilarHistory] = useState<SimilarHistoryEntry[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
   const [growth, setGrowth] = useState<{ level: number; xp: number; points: number; insight: number; privileges: string[] } | null>(null);
   const [rewardToast, setRewardToast] = useState<{ xp: number; points: number; insight: number } | null>(null);
@@ -326,25 +327,14 @@ export function NingYuanGame() {
 
   useEffect(() => {
     if (!user?.id) {
-      setSimilarMaxTier(null);
-      setSimilarMatches([]);
+      setSimilarHistory([]);
       return;
     }
     setSimilarLoading(true);
-    fetch("/api/play/me")
+    fetch("/api/soul-mates/history")
       .then((r) => r.json())
-      .then((d) => {
-        const tier = d?.maxTier ?? null;
-        setSimilarMaxTier(tier);
-        if (tier != null) {
-          return fetch(`/api/soul-mates?tier=${tier}`).then((r) => r.json());
-        }
-        setSimilarMatches([]);
-      })
-      .then((d) => {
-        if (d?.matches) setSimilarMatches(d.matches);
-      })
-      .catch(() => setSimilarMatches([]))
+      .then((d) => setSimilarHistory(d?.history ?? []))
+      .catch(() => setSimilarHistory([]))
       .finally(() => setSimilarLoading(false));
   }, [user?.id]);
 
@@ -1003,45 +993,51 @@ export function NingYuanGame() {
                 </p>
               ) : similarLoading ? (
                 <p className="text-center text-xs text-zinc-500">加载中...</p>
-              ) : similarMaxTier == null ? (
-                <p className="text-center text-xs text-zinc-500">完成 20 题解锁</p>
-              ) : similarMatches.length === 0 ? (
-                <p className="text-center text-xs text-zinc-500">暂无匹配</p>
+              ) : similarHistory.length === 0 ? (
+                <p className="text-center text-xs text-zinc-500">完成 20 题后显示历史匹配</p>
               ) : (
                 <>
                   {requestConnectionError ? <p className="mb-2 text-center text-[10px] text-red-400">{requestConnectionError}</p> : null}
-                  <ul className="space-y-2">
-                    {similarMatches.slice(0, 3).map((m) => (
-                      <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-2">
-                        <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
-                        {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRequestConnectionError("");
-                            fetch("/api/conversations/request", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ target_soul_id: m.soul_id }),
-                            })
-                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
-                              .then(({ ok, data }) => {
-                                if (!ok) {
-                                  setRequestConnectionError((data?.error as string) ?? "请求失败");
-                                  return;
-                                }
-                                setRequestConnectionError("");
-                                window.open("/chat", "_self");
-                              })
-                              .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
-                          }}
-                          className="mt-1.5 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
-                        >
-                          请求连接
-                        </button>
-                      </li>
+                  <div className="space-y-4">
+                    {similarHistory.map((entry) => (
+                      <div key={entry.tier}>
+                        <p className="mb-1.5 text-[10px] text-zinc-500">第 {entry.tier / 20} 层 · {entry.tier} 题</p>
+                        <ul className="space-y-1.5">
+                          {entry.matches.map((m) => (
+                            <li key={`${entry.tier}-${m.soul_id}`} className="rounded border border-white/15 bg-white/5 p-2">
+                              <p className="font-medium text-[10px] text-white/80">{m.display_name ?? m.soul_id}</p>
+                              {m.display_name ? <p className="font-mono text-[9px] text-zinc-500">{m.soul_id}</p> : null}
+                              {m.resonance > 0 && <span className="text-[9px] text-white/50">共鸣 {m.resonance}%</span>}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRequestConnectionError("");
+                                  fetch("/api/conversations/request", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ target_soul_id: m.soul_id }),
+                                  })
+                                    .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                                    .then(({ ok, data }) => {
+                                      if (!ok) {
+                                        setRequestConnectionError((data?.error as string) ?? "请求失败");
+                                        return;
+                                      }
+                                      setRequestConnectionError("");
+                                      window.open("/chat", "_self");
+                                    })
+                                    .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                                }}
+                                className="mt-1 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
+                              >
+                                请求连接
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </>
               )}
             </div>
@@ -1097,45 +1093,51 @@ export function NingYuanGame() {
                 <p className="text-center text-xs text-zinc-500">Lv.2 解锁与你相似的人</p>
               ) : similarLoading ? (
                 <p className="text-center text-xs text-zinc-500">加载中...</p>
-              ) : similarMaxTier == null ? (
-                <p className="text-center text-xs text-zinc-500">完成 20 题解锁</p>
-              ) : similarMatches.length === 0 ? (
-                <p className="text-center text-xs text-zinc-500">暂无匹配</p>
+              ) : similarHistory.length === 0 ? (
+                <p className="text-center text-xs text-zinc-500">完成 20 题后显示历史匹配</p>
               ) : (
                 <>
                   {requestConnectionError ? <p className="mb-2 text-center text-[10px] text-red-400">{requestConnectionError}</p> : null}
-                  <ul className="mt-2 space-y-3">
-                    {similarMatches.slice(0, 3).map((m) => (
-                      <li key={m.soul_id} className="rounded border border-white/15 bg-white/5 p-3">
-                        <span className="font-mono text-[10px] text-white/80">{m.soul_id}</span>
-                        {m.resonance > 0 && <span className="ml-1 text-[10px] text-white/50">共鸣 {m.resonance}%</span>}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRequestConnectionError("");
-                            fetch("/api/conversations/request", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ target_soul_id: m.soul_id }),
-                            })
-                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
-                              .then(({ ok, data }) => {
-                                if (!ok) {
-                                  setRequestConnectionError((data?.error as string) ?? "请求失败");
-                                  return;
-                                }
-                                setRequestConnectionError("");
-                                window.open("/chat", "_self");
-                              })
-                              .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
-                          }}
-                          className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
-                        >
-                          请求连接
-                        </button>
-                      </li>
+                  <div className="mt-2 space-y-4">
+                    {similarHistory.map((entry) => (
+                      <div key={entry.tier}>
+                        <p className="mb-2 text-[10px] text-zinc-500">第 {entry.tier / 20} 层 · 完成 {entry.tier} 题</p>
+                        <ul className="space-y-2">
+                          {entry.matches.map((m) => (
+                            <li key={`${entry.tier}-${m.soul_id}`} className="rounded border border-white/15 bg-white/5 p-3">
+                              <p className="font-medium text-xs text-white/80">{m.display_name ?? m.soul_id}</p>
+                              {m.display_name ? <p className="font-mono text-[10px] text-zinc-500">{m.soul_id}</p> : null}
+                              {m.resonance > 0 && <p className="text-[10px] text-white/50">共鸣 {m.resonance}%</p>}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRequestConnectionError("");
+                                  fetch("/api/conversations/request", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ target_soul_id: m.soul_id }),
+                                  })
+                                    .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                                    .then(({ ok, data }) => {
+                                      if (!ok) {
+                                        setRequestConnectionError((data?.error as string) ?? "请求失败");
+                                        return;
+                                      }
+                                      setRequestConnectionError("");
+                                      window.open("/chat", "_self");
+                                    })
+                                    .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                                }}
+                                className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
+                              >
+                                请求连接
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </>
               )}
             </div>
