@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { questions, Impact } from "./questions";
@@ -145,7 +145,7 @@ function getDominantAttribute(
   return key;
 }
 
-export default function NingYuanGame() {
+export function NingYuanGame() {
   const [questionOrder, setQuestionOrder] = useState<number[] | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<null | "A" | "B">(null);
@@ -1719,5 +1719,19 @@ function StatBar({
         {name}
       </span>
     </div>
+  );
+}
+
+const PageFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-black">
+    <div className="h-5 w-5 animate-pulse rounded-full border border-white/20" />
+  </div>
+);
+
+export default function Page() {
+  return (
+    <Suspense fallback={<PageFallback />}>
+      <NingYuanGame />
+    </Suspense>
   );
 }
