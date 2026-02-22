@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { awardXp } from "@/lib/growth/xp";
 import { addInsight } from "@/lib/growth/insight";
+import { addPoints } from "@/lib/growth/points";
 import { unlock, canUnlock } from "@/lib/growth/privilege";
 import { NextResponse } from "next/server";
 
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const xpDelta = body?.xp_delta ?? 0;
+    const pointsDelta = body?.points_delta ?? 0;
     const insightDelta = body?.insight_delta ?? 0;
 
     const admin = createAdminClient();
@@ -20,13 +22,16 @@ export async function POST(request: Request) {
     if (typeof xpDelta === "number" && xpDelta > 0) {
       await awardXp(user.id, xpDelta, "question");
     }
+    if (typeof pointsDelta === "number" && pointsDelta > 0) {
+      await addPoints(user.id, pointsDelta);
+    }
     if (typeof insightDelta === "number" && insightDelta > 0) {
       await addInsight(user.id, insightDelta, "question");
     }
 
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("level, xp, insight")
+      .select("level, xp, points, insight")
       .eq("id", user.id)
       .single();
     if (profErr || !profile)
@@ -60,6 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       level: (profile.level as number) ?? 1,
       xp: (profile.xp as number) ?? 0,
+      points: (profile.points as number) ?? 0,
       insight: (profile.insight as number) ?? 0,
       privileges,
     });

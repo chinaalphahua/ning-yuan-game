@@ -9,6 +9,7 @@ create table if not exists public.profiles (
   level int not null default 1 check (level >= 1),
   xp int not null default 0 check (xp >= 0),
   insight int not null default 0 check (insight >= 0),
+  points int not null default 0 check (points >= 0),
   created_at timestamptz default now()
 );
 
@@ -100,6 +101,76 @@ create index if not exists idx_group_messages_group on public.group_messages(gro
 create index if not exists idx_user_privileges_user on public.user_privileges(user_id);
 create index if not exists idx_user_privileges_key on public.user_privileges(privilege_key);
 
+-- Insight records (growth system)
+create table if not exists public.insight_records (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  content text not null default '',
+  depth_score int check (depth_score >= 1 and depth_score <= 10),
+  ai_comment text,
+  insight_rank text check (insight_rank in ('S', 'A', 'B', 'C')),
+  source text not null default 'question' check (source in ('question', 'checkpoint', 'achievement')),
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_insight_records_user on public.insight_records(user_id);
+create index if not exists idx_insight_records_created on public.insight_records(created_at desc);
+
+-- Achievements config
+create table if not exists public.achievements (
+  key text primary key,
+  name text not null,
+  description text,
+  icon text,
+  exp_reward int not null default 0,
+  points_reward int not null default 0,
+  insight_reward int not null default 0,
+  condition_type text not null check (condition_type in ('questions_count', 'streak_days', 'level', 'custom')),
+  condition_value jsonb default '{}'
+);
+
+-- User achievements
+create table if not exists public.user_achievements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  achievement_key text not null references public.achievements(key) on delete cascade,
+  unlocked_at timestamptz not null default now(),
+  unique(user_id, achievement_key)
+);
+create index if not exists idx_user_achievements_user on public.user_achievements(user_id);
+
+-- Badges config
+create table if not exists public.badges (
+  key text primary key,
+  name text not null,
+  description text,
+  icon text,
+  required_level int,
+  required_achievements jsonb default '[]'
+);
+
+-- User badges
+create table if not exists public.user_badges (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  badge_key text not null references public.badges(key) on delete cascade,
+  unlocked_at timestamptz not null default now(),
+  unique(user_id, badge_key)
+);
+create index if not exists idx_user_badges_user on public.user_badges(user_id);
+
+-- Check-ins
+create table if not exists public.check_ins (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  check_in_date date not null,
+  streak_days int not null default 1,
+  exp_reward int not null default 0,
+  points_reward int not null default 0,
+  unique(user_id, check_in_date)
+);
+create index if not exists idx_check_ins_user on public.check_ins(user_id);
+create index if not exists idx_check_ins_date on public.check_ins(check_in_date desc);
+
 -- RLS: enable and add policies as needed (e.g. users can read/write own profiles, own play_sessions, etc.)
 alter table public.profiles enable row level security;
 alter table public.play_sessions enable row level security;
@@ -111,6 +182,12 @@ alter table public.group_members enable row level security;
 alter table public.group_messages enable row level security;
 alter table public.privileges enable row level security;
 alter table public.user_privileges enable row level security;
+alter table public.insight_records enable row level security;
+alter table public.achievements enable row level security;
+alter table public.user_achievements enable row level security;
+alter table public.badges enable row level security;
+alter table public.user_badges enable row level security;
+alter table public.check_ins enable row level security;
 
 -- Seed privileges (growth system)
 insert into public.privileges (key, name, description, required_level, required_insight)
@@ -119,9 +196,36 @@ values
   ('view_similar_souls', '查看相似灵魂', '解锁相似灵魂推荐', 2, null)
 on conflict (key) do nothing;
 
+-- Seed achievements
+insert into public.achievements (key, name, description, icon, exp_reward, points_reward, insight_reward, condition_type, condition_value)
+values
+  ('first_10', '初试锋芒', '完成 10 题', 'star', 20, 30, 2, 'questions_count', '{"count": 10}'),
+  ('first_50', '半程觉醒', '完成 50 题', 'star', 50, 80, 5, 'questions_count', '{"count": 50}'),
+  ('first_100', '灵魂圆满', '完成 100 题', 'star', 100, 150, 10, 'questions_count', '{"count": 100}'),
+  ('streak_7', '七日行者', '连续签到 7 天', 'flame', 50, 100, 3, 'streak_days', '{"days": 7}')
+on conflict (key) do nothing;
+
+-- Seed badges
+insert into public.badges (key, name, description, icon, required_level, required_achievements)
+values
+  ('first_journey', '初次启程', '完成首题', 'badge', 1, '[]'),
+  ('thinker', '思想者', '完成 50 题', 'badge', 2, '["first_50"]')
+on conflict (key) do nothing;
+
 create policy "Anyone can read privileges" on public.privileges for select using (true);
 create policy "Users can read own user_privileges" on public.user_privileges for select using (auth.uid() = user_id);
 create policy "Users can insert own user_privileges" on public.user_privileges for insert with check (auth.uid() = user_id);
+
+create policy "Anyone can read achievements" on public.achievements for select using (true);
+create policy "Anyone can read badges" on public.badges for select using (true);
+create policy "Users can read own insight_records" on public.insight_records for select using (auth.uid() = user_id);
+create policy "Users can insert own insight_records" on public.insight_records for insert with check (auth.uid() = user_id);
+create policy "Users can read own user_achievements" on public.user_achievements for select using (auth.uid() = user_id);
+create policy "Users can insert own user_achievements" on public.user_achievements for insert with check (auth.uid() = user_id);
+create policy "Users can read own user_badges" on public.user_badges for select using (auth.uid() = user_id);
+create policy "Users can insert own user_badges" on public.user_badges for insert with check (auth.uid() = user_id);
+create policy "Users can read own check_ins" on public.check_ins for select using (auth.uid() = user_id);
+create policy "Users can insert own check_ins" on public.check_ins for insert with check (auth.uid() = user_id);
 
 create policy "Users can read own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);

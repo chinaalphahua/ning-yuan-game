@@ -8,7 +8,7 @@ import {
   RESONANCE_POSITIONS,
   type ResonancePosition,
 } from "@/constants/resonance";
-import { xpToLevel } from "@/lib/growth/level";
+import { xpToLevel, levelToExp } from "@/lib/growth/level";
 
 const STAT_KEYS = [
   "金钱",
@@ -42,8 +42,9 @@ const SAVE_KEY = "ningyuan_progress";
 const SOUL_ID_KEY = "soul_id";
 
 /** 每次选择奖励 */
-const REWARD_XP = 10;
-const REWARD_INSIGHT = 2;
+const REWARD_XP = 5;
+const REWARD_POINTS = 10;
+const REWARD_INSIGHT = 1;
 
 /** 题目加减分强度系数，大于 1 时变化更剧烈 */
 const IMPACT_MULTIPLIER = 1.5;
@@ -174,8 +175,8 @@ export default function NingYuanGame() {
   const [similarMaxTier, setSimilarMaxTier] = useState<number | null>(null);
   const [similarMatches, setSimilarMatches] = useState<{ soul_id: string; resonance: number; stats?: Record<string, number> }[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
-  const [growth, setGrowth] = useState<{ level: number; xp: number; insight: number; privileges: string[] } | null>(null);
-  const [rewardToast, setRewardToast] = useState<{ xp: number; insight: number } | null>(null);
+  const [growth, setGrowth] = useState<{ level: number; xp: number; points: number; insight: number; privileges: string[] } | null>(null);
+  const [rewardToast, setRewardToast] = useState<{ xp: number; points: number; insight: number } | null>(null);
   const [levelUpData, setLevelUpData] = useState<{ level: number; newPrivileges: { key: string; name: string }[] } | null>(null);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [localXp, setLocalXp] = useState(0);
@@ -285,6 +286,7 @@ export default function NingYuanGame() {
           setGrowth({
             level: d.level,
             xp: d.xp,
+            points: d.points ?? 0,
             insight: d.insight ?? 0,
             privileges: Array.isArray(d.privilege_keys)
               ? d.privilege_keys
@@ -424,7 +426,7 @@ export default function NingYuanGame() {
       }
       setDisplayRatio(pickRatio());
 
-      setRewardToast({ xp: REWARD_XP, insight: REWARD_INSIGHT });
+      setRewardToast({ xp: REWARD_XP, points: REWARD_POINTS, insight: REWARD_INSIGHT });
       setTimeout(() => setRewardToast(null), 1500);
 
       if (user?.id) {
@@ -433,7 +435,7 @@ export default function NingYuanGame() {
         fetch("/api/progress/update", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ xp_delta: REWARD_XP, insight_delta: REWARD_INSIGHT }),
+          body: JSON.stringify({ xp_delta: REWARD_XP, points_delta: REWARD_POINTS, insight_delta: REWARD_INSIGHT }),
         })
           .then((r) => r.json())
           .then((d) => {
@@ -443,6 +445,7 @@ export default function NingYuanGame() {
               setGrowth({
                 level: d.level,
                 xp: d.xp,
+                points: d.points ?? 0,
                 insight: d.insight ?? 0,
                 privileges: privKeys,
               });
@@ -710,7 +713,7 @@ export default function NingYuanGame() {
       {/* 奖励 Toast：+XP +Insight，1.5s */}
       <AnimatePresence>
         {rewardToast && (
-          <RewardToast xp={rewardToast.xp} insight={rewardToast.insight} />
+          <RewardToast xp={rewardToast.xp} points={rewardToast.points} insight={rewardToast.insight} />
         )}
       </AnimatePresence>
 
@@ -822,7 +825,15 @@ export default function NingYuanGame() {
             <div className="h-1.5 w-12 overflow-hidden rounded-full bg-zinc-800">
               <div
                 className="h-full bg-white/40"
-                style={{ width: `${growth.xp % 100}%` }}
+                style={{
+                  width: `${(() => {
+                    const expAt = levelToExp(growth.level);
+                    const expNext = levelToExp(growth.level + 1);
+                    const need = expNext - expAt;
+                    const have = growth.xp - expAt;
+                    return need > 0 ? Math.min(100, (have / need) * 100) : 100;
+                  })()}%`,
+                }}
               />
             </div>
             <span className="text-[10px] text-zinc-500">洞察 {growth.insight}</span>
@@ -830,6 +841,9 @@ export default function NingYuanGame() {
         )}
         {user ? (
           <>
+            <a href="/profile" className="text-[10px] text-zinc-500 underline hover:text-white">
+              个人主页
+            </a>
             <a href="/chat" className="text-[10px] text-zinc-500 underline hover:text-white">
               我的连接
             </a>
@@ -1094,16 +1108,18 @@ export default function NingYuanGame() {
   );
 }
 
-function RewardToast({ xp, insight }: { xp: number; insight: number }) {
+function RewardToast({ xp, points, insight }: { xp: number; points: number; insight: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", stiffness: 300 }}
       className="fixed left-1/2 top-14 z-40 -translate-x-1/2 rounded border border-white/20 bg-zinc-900/95 px-4 py-2 text-center shadow-lg"
     >
       <span className="text-xs text-white/90">+{xp} XP</span>
+      <span className="mx-2 text-zinc-600">·</span>
+      <span className="text-xs text-white/90">+{points} 积分</span>
       <span className="mx-2 text-zinc-600">·</span>
       <span className="text-xs text-white/90">+{insight} 洞察</span>
     </motion.div>
@@ -1124,30 +1140,38 @@ function LevelUpModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
     >
-      <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">升级</p>
-      <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 md:text-2xl lg:text-3xl">
-        Lv.{level}
-      </h2>
-      {newPrivileges.length > 0 && (
-        <div className="mt-6 max-w-sm space-y-2 text-center">
-          <p className="text-xs text-zinc-500">新解锁</p>
-          <ul className="space-y-1 text-sm text-white/80">
-            {newPrivileges.map((p) => (
-              <li key={p.key}>{p.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <motion.button
-        type="button"
-        onClick={onClose}
-        className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
-        whileTap={{ scale: 0.98 }}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 22 }}
+        className="flex flex-col items-center"
       >
-        继续
-      </motion.button>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">升级</p>
+        <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 md:text-2xl lg:text-3xl">
+          Lv.{level}
+        </h2>
+        {newPrivileges.length > 0 && (
+          <div className="mt-6 max-w-sm space-y-2 text-center">
+            <p className="text-xs text-zinc-500">新解锁</p>
+            <ul className="space-y-1 text-sm text-white/80">
+              {newPrivileges.map((p) => (
+                <li key={p.key}>{p.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <motion.button
+          type="button"
+          onClick={onClose}
+          className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+          whileTap={{ scale: 0.98 }}
+        >
+          继续
+        </motion.button>
+      </motion.div>
     </motion.div>
   );
 }

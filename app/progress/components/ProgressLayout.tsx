@@ -18,6 +18,12 @@ export default function ProgressLayout({ children }: ProgressLayoutProps) {
         >
           ← 返回
         </Link>
+        <Link
+          href="/profile"
+          className="text-[11px] uppercase tracking-widest text-zinc-500 transition hover:text-white/80"
+        >
+          个人主页
+        </Link>
       </header>
       <main className="relative z-10 flex flex-1 flex-col overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 md:px-6 md:pt-12">
         {children}

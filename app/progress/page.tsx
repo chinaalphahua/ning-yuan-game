@@ -7,12 +7,14 @@ import ProgressLayout from "./components/ProgressLayout";
 import LevelTitleCard from "./components/LevelTitleCard";
 import XpProgressBar from "./components/XpProgressBar";
 import InsightBalance from "./components/InsightBalance";
+import PointsBalance from "./components/PointsBalance";
 import PrivilegeList from "./components/PrivilegeList";
 import GrowthTimeline from "./components/GrowthTimeline";
 
 type GrowthData = {
   level: number;
   xp: number;
+  points: number;
   insight: number;
   privileges: { key: string; name: string }[];
 };
@@ -43,6 +45,7 @@ export default function ProgressPage() {
           setGrowth({
             level: d.level,
             xp: d.xp,
+            points: d.points ?? 0,
             insight: d.insight ?? 0,
             privileges: arr,
           });
@@ -87,6 +90,7 @@ export default function ProgressPage() {
       <div className="mx-auto max-w-md">
         <LevelTitleCard level={growth.level} />
         <XpProgressBar xp={growth.xp} level={growth.level} />
+        <PointsBalance points={growth.points} />
         <InsightBalance insight={growth.insight} />
         <PrivilegeList privileges={growth.privileges} />
         <GrowthTimeline level={growth.level} unlockedPrivilegeKeys={unlockedKeys} />

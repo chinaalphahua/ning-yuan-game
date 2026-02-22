@@ -12,7 +12,7 @@ export async function GET() {
     const admin = createAdminClient();
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("level, xp, insight")
+      .select("level, xp, points, insight")
       .eq("id", user.id)
       .single();
     if (profErr || !profile)
@@ -47,6 +47,7 @@ export async function GET() {
     return NextResponse.json({
       level: (profile.level as number) ?? 1,
       xp: (profile.xp as number) ?? 0,
+      points: (profile.points as number) ?? 0,
       insight: (profile.insight as number) ?? 0,
       privileges,
       privilege_keys: unlockedKeys,

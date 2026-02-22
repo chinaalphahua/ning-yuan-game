@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { STAT_KEYS, statsToVector, cosineSimilarity, toResonancePercent } from "@/lib/stats";
 import { awardXp } from "@/lib/growth/xp";
-import { XP_PER_CHECKPOINT } from "@/lib/growth/constants";
+import { addPoints } from "@/lib/growth/points";
+import { addInsight } from "@/lib/growth/insight";
+import { REWARD_EXP_CHECKPOINT, REWARD_POINTS_CHECKPOINT, REWARD_INSIGHT_CHECKPOINT } from "@/lib/growth/constants";
 import { NextResponse } from "next/server";
 
 const TIERS = [20, 40, 60, 80, 100] as const;
@@ -84,9 +86,11 @@ export async function POST(request: Request) {
     );
 
     try {
-      await awardXp(user.id, XP_PER_CHECKPOINT, "checkpoint");
+      await awardXp(user.id, REWARD_EXP_CHECKPOINT, "checkpoint");
+      await addPoints(user.id, REWARD_POINTS_CHECKPOINT);
+      await addInsight(user.id, REWARD_INSIGHT_CHECKPOINT, "checkpoint");
     } catch (_) {
-      // XP 奖励失败不阻塞主流程
+      // 奖励失败不阻塞主流程
     }
 
     const matches = top3.map((m) => ({
