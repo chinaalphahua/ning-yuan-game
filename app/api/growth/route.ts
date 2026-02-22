@@ -18,7 +18,7 @@ export async function GET() {
     if (profErr || !profile)
       return NextResponse.json({ error: "用户不存在" }, { status: 404 });
 
-    const { data: allPrivs } = await admin.from("privileges").select("key, required_level, required_insight");
+    const { data: allPrivs } = await admin.from("privileges").select("key, name, required_level, required_insight");
     const { data: userPrivs } = await admin
       .from("user_privileges")
       .select("privilege_key")
@@ -37,13 +37,19 @@ export async function GET() {
       }
     }
 
-    const privileges = Array.from(unlockedSet);
+    const unlockedKeys = Array.from(unlockedSet);
+    const privMap = new Map((allPrivs ?? []).map((p) => [p.key, p.name ?? p.key]));
+    const privileges = unlockedKeys.map((key) => ({
+      key,
+      name: privMap.get(key) ?? key,
+    }));
 
     return NextResponse.json({
       level: (profile.level as number) ?? 1,
       xp: (profile.xp as number) ?? 0,
       insight: (profile.insight as number) ?? 0,
       privileges,
+      privilege_keys: unlockedKeys,
     });
   } catch (e) {
     return NextResponse.json({ error: "服务器错误" }, { status: 500 });

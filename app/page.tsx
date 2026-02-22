@@ -286,7 +286,11 @@ export default function NingYuanGame() {
             level: d.level,
             xp: d.xp,
             insight: d.insight ?? 0,
-            privileges: Array.isArray(d.privileges) ? d.privileges : [],
+            privileges: Array.isArray(d.privilege_keys)
+              ? d.privilege_keys
+              : Array.isArray(d.privileges)
+                ? d.privileges.map((p: { key: string } | string) => (typeof p === "string" ? p : p.key))
+                : [],
           });
         else setGrowth(null);
       })
