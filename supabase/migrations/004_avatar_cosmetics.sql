@@ -28,14 +28,18 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS equipped_face_key text REFERENCES public.avatar_cosmetics(key) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS equipped_accessory_key text REFERENCES public.avatar_cosmetics(key) ON DELETE SET NULL;
 
--- 4. RLS
+-- 4. RLS（先 DROP 再 CREATE，支持重复执行）
 ALTER TABLE public.avatar_cosmetics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_cosmetics ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read avatar_cosmetics" ON public.avatar_cosmetics;
 CREATE POLICY "Anyone can read avatar_cosmetics" ON public.avatar_cosmetics FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can read own user_cosmetics" ON public.user_cosmetics;
 CREATE POLICY "Users can read own user_cosmetics" ON public.user_cosmetics FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own user_cosmetics" ON public.user_cosmetics;
 CREATE POLICY "Users can insert own user_cosmetics" ON public.user_cosmetics FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own user_cosmetics" ON public.user_cosmetics;
 CREATE POLICY "Users can update own user_cosmetics" ON public.user_cosmetics FOR UPDATE USING (auth.uid() = user_id);
 
 -- 5. Seed 100 件装扮（黑白、含说明；默认人人可用：短发+素面）
