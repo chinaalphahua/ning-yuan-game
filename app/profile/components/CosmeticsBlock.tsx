@@ -104,6 +104,12 @@ export default function CosmeticsBlock() {
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-medium tracking-wider text-zinc-400">头像装扮</h3>
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded border border-white/20 bg-black">
+            <img
+              src="/cosmetics/avatar_base.png"
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain object-center"
+              aria-hidden
+            />
             {[face?.key, hair?.key, acc?.key].map((key) => {
               const src = cosmeticImageSrc(key);
               if (!src) return null;
