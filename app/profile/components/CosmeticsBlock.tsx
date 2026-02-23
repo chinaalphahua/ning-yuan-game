@@ -103,7 +103,7 @@ export default function CosmeticsBlock() {
       <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-5">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-medium tracking-wider text-zinc-400">头像装扮</h3>
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border border-white/20 bg-black">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded border border-white/20 bg-black">
             {[face?.key, hair?.key, acc?.key].map((key) => {
               const src = cosmeticImageSrc(key);
               if (!src) return null;
