@@ -34,14 +34,6 @@ const SLOT_LABEL: Record<string, string> = {
   accessory: "配饰",
 };
 
-/** 有像素图资源的 key（无图则不显示该层，避免 404） */
-const PIXEL_AVATAR_KEYS = new Set(["face_default", "hair_short_black", "acc_glasses_round"]);
-
-function cosmeticImageSrc(key: string | null | undefined): string | null {
-  if (!key || !PIXEL_AVATAR_KEYS.has(key)) return null;
-  return `/cosmetics/${key}.png`;
-}
-
 export default function CosmeticsBlock() {
   const [data, setData] = useState<MineData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,25 +95,12 @@ export default function CosmeticsBlock() {
       <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-5">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-medium tracking-wider text-zinc-400">头像装扮</h3>
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded border border-white/20 bg-black">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded border border-white/20 bg-zinc-900">
             <img
-              src="/cosmetics/avatar_base.png"
+              src="/cosmetics/avatar_default.png"
               alt=""
-              className="absolute inset-0 h-full w-full object-contain object-center"
-              aria-hidden
+              className="h-full w-full object-contain object-center"
             />
-            {[face?.key, hair?.key, acc?.key].map((key) => {
-              const src = cosmeticImageSrc(key);
-              if (!src) return null;
-              return (
-                <img
-                  key={key ?? ""}
-                  src={src}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-contain object-center"
-                />
-              );
-            })}
           </div>
           <button
             type="button"
