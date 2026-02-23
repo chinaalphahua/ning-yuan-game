@@ -23,8 +23,8 @@ export async function GET() {
       profile?.equipped_accessory_key,
     ].filter(Boolean) as string[];
 
-    const { data: equippedItems } = await equippedKeys.length
-      ? admin.from("avatar_cosmetics").select("key, name, slot, rarity, description").in("key", equippedKeys)
+    const { data: equippedItems } = equippedKeys.length
+      ? await admin.from("avatar_cosmetics").select("key, name, slot, rarity, description").in("key", equippedKeys)
       : { data: [] as { key: string; name: string; slot: string; rarity: string; description: string }[] };
 
     const equippedBySlot = new Map((equippedItems ?? []).map((i) => [i.slot, i]));
@@ -35,8 +35,8 @@ export async function GET() {
       .eq("user_id", user.id);
 
     const keys = (rows ?? []).map((r) => r.cosmetic_key);
-    const { data: items } = await keys.length
-      ? admin.from("avatar_cosmetics").select("key, name, slot, rarity, description").in("key", keys)
+    const { data: items } = keys.length
+      ? await admin.from("avatar_cosmetics").select("key, name, slot, rarity, description").in("key", keys)
       : { data: [] as { key: string; name: string; slot: string; rarity: string; description: string }[] };
 
     const byKey = new Map((items ?? []).map((i) => [i.key, i]));
