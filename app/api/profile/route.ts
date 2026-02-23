@@ -12,7 +12,7 @@ export async function GET() {
 
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("id, soul_id, display_name, level, xp, points, insight, created_at")
+      .select("id, soul_id, display_name, level, xp, points, insight, created_at, equipped_hair_key, equipped_face_key, equipped_accessory_key")
       .eq("id", user.id)
       .single();
     if (profErr || !profile)
@@ -83,6 +83,9 @@ export async function GET() {
         points: profile.points,
         insight: profile.insight,
         created_at: profile.created_at,
+        equipped_hair_key: profile.equipped_hair_key ?? null,
+        equipped_face_key: profile.equipped_face_key ?? null,
+        equipped_accessory_key: profile.equipped_accessory_key ?? null,
       },
       achievements,
       badges,

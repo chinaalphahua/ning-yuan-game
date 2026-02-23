@@ -182,6 +182,7 @@ export function NingYuanGame() {
   const [levelUpData, setLevelUpData] = useState<{ level: number; newPrivileges: { key: string; name: string }[] } | null>(null);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [showSoulMatchHint, setShowSoulMatchHint] = useState(false);
+  const [droppedCosmetic, setDroppedCosmetic] = useState<{ key: string; name: string; description: string; rarity: string } | null>(null);
   const [requestConnectionError, setRequestConnectionError] = useState("");
   const [localXp, setLocalXp] = useState(0);
   const [localInsight, setLocalInsight] = useState(0);
@@ -367,6 +368,10 @@ export function NingYuanGame() {
         .then((d) => {
           if (d.matches?.length) setSoulMateMatches(d.matches);
           else setSoulMateMatches([]);
+          if (d.dropped_cosmic) {
+            setDroppedCosmetic(d.dropped_cosmic);
+            setTimeout(() => setDroppedCosmetic(null), 3500);
+          }
         })
         .catch(() => setSoulMateMatches([]));
     } else {
@@ -582,6 +587,7 @@ export function NingYuanGame() {
     setLocalXp(0);
     setLocalInsight(0);
     setRewardToast(null);
+    setDroppedCosmetic(null);
     setLevelUpData(null);
     setShowLevelUpModal(false);
   }, []);
@@ -721,6 +727,27 @@ export function NingYuanGame() {
       <AnimatePresence>
         {rewardToast && (
           <RewardToast xp={rewardToast.xp} points={rewardToast.points} insight={rewardToast.insight} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {droppedCosmetic && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 max-w-[90vw] rounded border border-white/20 bg-zinc-900/95 px-4 py-3 text-center shadow-lg"
+          >
+            <p className="text-xs font-medium text-white/90">获得装扮</p>
+            <p className="mt-1 text-sm text-white">{droppedCosmetic.name}</p>
+            <p className="mt-0.5 text-[10px] text-zinc-500">
+              {droppedCosmetic.rarity === "common" && "普通"}
+              {droppedCosmetic.rarity === "rare" && "精良"}
+              {droppedCosmetic.rarity === "epic" && "史诗"}
+              {droppedCosmetic.rarity === "legendary" && "传说"}
+            </p>
+          </motion.div>
         )}
       </AnimatePresence>
 

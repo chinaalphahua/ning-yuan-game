@@ -276,3 +276,31 @@ create policy "Members can insert group_messages" on public.group_messages for i
   auth.uid() = sender_id and
   exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid())
 );
+
+-- Avatar cosmetics (see migration 004 for full seed and RLS)
+create table if not exists public.avatar_cosmetics (
+  key text primary key,
+  name text not null,
+  slot text not null check (slot in ('hair', 'face', 'accessory')),
+  rarity text not null check (rarity in ('common', 'rare', 'epic', 'legendary')),
+  description text not null default '',
+  is_default boolean not null default false
+);
+create table if not exists public.user_cosmetics (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  cosmetic_key text not null references public.avatar_cosmetics(key) on delete cascade,
+  quantity int not null default 1 check (quantity >= 1),
+  first_obtained_at timestamptz not null default now(),
+  unique(user_id, cosmetic_key)
+);
+create index if not exists idx_user_cosmetics_user on public.user_cosmetics(user_id);
+alter table public.profiles add column if not exists equipped_hair_key text references public.avatar_cosmetics(key) on delete set null;
+alter table public.profiles add column if not exists equipped_face_key text references public.avatar_cosmetics(key) on delete set null;
+alter table public.profiles add column if not exists equipped_accessory_key text references public.avatar_cosmetics(key) on delete set null;
+alter table public.avatar_cosmetics enable row level security;
+alter table public.user_cosmetics enable row level security;
+create policy "Anyone can read avatar_cosmetics" on public.avatar_cosmetics for select using (true);
+create policy "Users can read own user_cosmetics" on public.user_cosmetics for select using (auth.uid() = user_id);
+create policy "Users can insert own user_cosmetics" on public.user_cosmetics for insert with check (auth.uid() = user_id);
+create policy "Users can update own user_cosmetics" on public.user_cosmetics for update using (auth.uid() = user_id);

@@ -11,6 +11,7 @@ import InsightTimeline from "./components/InsightTimeline";
 import BadgeWall from "./components/BadgeWall";
 import SimilarSoulsBlock from "./components/SimilarSoulsBlock";
 import PrivilegeSection from "./components/PrivilegeSection";
+import CosmeticsBlock from "./components/CosmeticsBlock";
 
 type ProfileData = {
   profile: {
@@ -95,6 +96,9 @@ export default function ProfilePage() {
           />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.2 }}>
+          <CosmeticsBlock />
+        </motion.div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.25 }}>
           <InsightTimeline records={data.insight_records} />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.3 }}>

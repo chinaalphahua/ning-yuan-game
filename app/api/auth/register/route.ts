@@ -39,11 +39,18 @@ export async function POST(request: Request) {
       id: userId,
       soul_id: finalSoulId,
       display_name: name,
+      equipped_hair_key: "hair_short_black",
+      equipped_face_key: "face_default",
     });
     if (profileError) {
       console.error("Register profile insert failed:", profileError);
       return NextResponse.json({ error: "创建档案失败" }, { status: 500 });
     }
+
+    await supabase.from("user_cosmetics").insert([
+      { user_id: userId, cosmetic_key: "hair_short_black", quantity: 1 },
+      { user_id: userId, cosmetic_key: "face_default", quantity: 1 },
+    ]);
 
     return NextResponse.json({ soul_id: finalSoulId });
   } catch (e) {

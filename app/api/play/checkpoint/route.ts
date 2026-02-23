@@ -5,6 +5,7 @@ import { awardXp } from "@/lib/growth/xp";
 import { addPoints } from "@/lib/growth/points";
 import { addInsight } from "@/lib/growth/insight";
 import { REWARD_EXP_CHECKPOINT, REWARD_POINTS_CHECKPOINT, REWARD_INSIGHT_CHECKPOINT } from "@/lib/growth/constants";
+import { grantRandomCosmetic } from "@/lib/cosmetics/drop";
 import { NextResponse } from "next/server";
 
 const TIERS = [20, 40, 60, 80, 100] as const;
@@ -93,12 +94,19 @@ export async function POST(request: Request) {
       // 奖励失败不阻塞主流程
     }
 
+    let droppedCosmetic: { key: string; name: string; description: string; rarity: string } | null = null;
+    try {
+      droppedCosmetic = await grantRandomCosmetic(admin, user.id);
+    } catch (_) {
+      // 装扮掉落失败不阻塞
+    }
+
     const matches = top3.map((m) => ({
       soul_id: m.soul_id,
       resonance: toResonancePercent(m.similarity),
     }));
 
-    return NextResponse.json({ soul_id: mySoulId, matches });
+    return NextResponse.json({ soul_id: mySoulId, matches, dropped_cosmic: droppedCosmetic });
   } catch (e) {
     return NextResponse.json({ error: "服务器错误" }, { status: 500 });
   }
