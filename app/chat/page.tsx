@@ -10,6 +10,16 @@ type Conversation = { id: string; other_soul_id: string; other_display_name?: st
 type Message = { id: string; sender_soul_id: string; is_me: boolean; content: string; created_at: string };
 type Group = { id: string; name: string; created_at: string };
 type GroupMessage = { id: string; sender_soul_id: string; sender_display_name: string | null; is_me: boolean; content: string; created_at: string };
+type SoulLetter = {
+  id: string;
+  tier: number;
+  content: string;
+  status: string;
+  created_at: string;
+  responded_at: string | null;
+  sender_soul_id: string;
+  sender_display_name: string | null;
+};
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -41,6 +51,9 @@ export default function ChatPage() {
   const [joinGroupError, setJoinGroupError] = useState("");
   const [joinGroupSuccess, setJoinGroupSuccess] = useState(false);
   const [joinGroupLoading, setJoinGroupLoading] = useState(false);
+  const [letters, setLetters] = useState<SoulLetter[]>([]);
+  const [lettersLoading, setLettersLoading] = useState(false);
+  const [lettersError, setLettersError] = useState("");
 
   const fetchUser = useCallback(() => {
     fetch("/api/auth/me")
@@ -57,6 +70,26 @@ export default function ChatPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const fetchLetters = useCallback(() => {
+    setLettersLoading(true);
+    setLettersError("");
+    fetch("/api/soul-letters/inbox")
+      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setLettersError((data?.error as string) ?? "加载失败");
+          setLetters([]);
+          return;
+        }
+        setLetters(data?.letters ?? []);
+      })
+      .catch(() => {
+        setLettersError("加载失败，请稍后再试");
+        setLetters([]);
+      })
+      .finally(() => setLettersLoading(false));
+  }, []);
+
   const fetchGroups = useCallback(() => {
     setGroupsLoading(true);
     fetch("/api/groups")
@@ -69,7 +102,8 @@ export default function ChatPage() {
   useEffect(() => {
     fetchUser();
     fetchConversations();
-  }, [fetchUser, fetchConversations]);
+    fetchLetters();
+  }, [fetchUser, fetchConversations, fetchLetters]);
 
   useEffect(() => {
     if (chatMode === "group") fetchGroups();
@@ -289,6 +323,28 @@ export default function ChatPage() {
       .finally(() => setJoinGroupLoading(false));
   };
 
+  const respondLetter = (letterId: string, action: "accept" | "reject" | "report") => {
+    fetch("/api/soul-letters/respond", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ letter_id: letterId, action }),
+    })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setLettersError((data?.error as string) ?? "操作失败");
+          return;
+        }
+        setLetters((prev) =>
+          prev.map((l) => (l.id === letterId ? { ...l, status: data.status ?? action, responded_at: new Date().toISOString() } : l)),
+        );
+        if (action === "accept") {
+          fetchConversations();
+        }
+      })
+      .catch(() => setLettersError("操作失败，请稍后再试"));
+  };
+
   const selected = conversations.find((c) => c.id === selectedId);
   const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
@@ -319,6 +375,68 @@ export default function ChatPage() {
     setSelectedId(null);
     setDrawerOpen(false);
   };
+
+  const SoulLettersSection = () => (
+    <div className="shrink-0 border-b border-zinc-800 p-3 space-y-2">
+      <p className="text-[10px] text-zinc-500">宁愿 · 收到的人生笺言</p>
+      {lettersLoading ? (
+        <p className="text-[10px] text-zinc-500">加载中...</p>
+      ) : letters.length === 0 ? (
+        <p className="text-[10px] text-zinc-500">暂无笺言</p>
+      ) : (
+        <ul className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {letters.map((l) => (
+            <li key={l.id} className="rounded border border-white/10 bg-zinc-900/80 p-2 text-[11px] text-zinc-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-medium">{l.sender_display_name || l.sender_soul_id}</span>
+                  {l.sender_display_name ? (
+                    <span className="ml-1 font-mono text-[10px] text-zinc-500">{l.sender_soul_id}</span>
+                  ) : null}
+                </div>
+                <span className="ml-2 text-[10px] text-zinc-500">第 {l.tier / 20} 层</span>
+              </div>
+              <p className="mt-1 text-[11px] text-zinc-200 whitespace-pre-wrap break-words">{l.content}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {l.status === "pending" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => respondLetter(l.id, "accept")}
+                      className="rounded border border-white/25 bg-white/10 px-2 py-1 text-[10px] text-white/90 hover:bg-white/20 touch-manipulation"
+                    >
+                      认同笺言
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => respondLetter(l.id, "reject")}
+                      className="rounded border border-white/15 px-2 py-1 text-[10px] text-zinc-300 hover:bg-white/10 touch-manipulation"
+                    >
+                      不认同
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => respondLetter(l.id, "report")}
+                      className="rounded border border-red-400/60 px-2 py-1 text-[10px] text-red-300 hover:bg-red-500/10 touch-manipulation"
+                    >
+                      举报
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-[10px] text-zinc-400">
+                    {l.status === "accepted" ? "你认同了这封笺言 · 你们已可以在连接中对话" : null}
+                    {l.status === "rejected" ? "你选择了不认同这封笺言" : null}
+                    {l.status === "reported" ? "已举报，此连接不会建立" : null}
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {lettersError ? <p className="text-[10px] text-red-400">{lettersError}</p> : null}
+    </div>
+  );
 
   const AddFriendSection = () => (
     <div className="shrink-0 border-b border-zinc-800 p-3">
@@ -467,6 +585,7 @@ export default function ChatPage() {
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto min-h-0 flex flex-col">
+          <SoulLettersSection />
           <AddFriendSection />
           <ChatModeTabs />
           {chatMode === "dm" ? <ConversationList /> : <GroupList />}
@@ -481,6 +600,7 @@ export default function ChatPage() {
                 className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-zinc-800 overflow-y-auto bg-black md:hidden"
                 onClick={(e) => e.stopPropagation()}
               >
+                <SoulLettersSection />
                 <AddFriendSection />
                 <ChatModeTabs />
                 <div className="p-2 border-b border-zinc-800 text-xs text-zinc-500">切换会话</div>

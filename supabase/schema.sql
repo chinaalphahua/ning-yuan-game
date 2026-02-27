@@ -101,6 +101,24 @@ create index if not exists idx_group_messages_group on public.group_messages(gro
 create index if not exists idx_user_privileges_user on public.user_privileges(user_id);
 create index if not exists idx_user_privileges_key on public.user_privileges(privilege_key);
 
+-- Soul letters：宁愿 · 人生笺言
+create table if not exists public.soul_letters (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  tier int not null check (tier in (20, 40, 60, 80, 100)),
+  content text not null,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected', 'reported')),
+  created_at timestamptz not null default now(),
+  responded_at timestamptz
+);
+create index if not exists idx_soul_letters_sender on public.soul_letters(sender_id);
+create index if not exists idx_soul_letters_recipient on public.soul_letters(recipient_id);
+alter table public.soul_letters enable row level security;
+create policy "Users can insert own soul_letters" on public.soul_letters for insert with check (auth.uid() = sender_id);
+create policy "Users can read own soul_letters" on public.soul_letters for select using (auth.uid() = sender_id or auth.uid() = recipient_id);
+create policy "Recipients can update soul_letters" on public.soul_letters for update using (auth.uid() = recipient_id);
+
 -- Insight records (growth system)
 create table if not exists public.insight_records (
   id uuid primary key default gen_random_uuid(),
