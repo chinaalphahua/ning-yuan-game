@@ -184,6 +184,11 @@ export function NingYuanGame() {
   const [showSoulMatchHint, setShowSoulMatchHint] = useState(false);
   const [droppedCosmetic, setDroppedCosmetic] = useState<{ key: string; name: string; description: string; rarity: string } | null>(null);
   const [requestConnectionError, setRequestConnectionError] = useState("");
+  const [similarLetterTarget, setSimilarLetterTarget] = useState<{ soulId: string; tier: number } | null>(null);
+  const [similarLetterContent, setSimilarLetterContent] = useState("");
+  const [similarLetterSending, setSimilarLetterSending] = useState(false);
+  const [similarLetterSuccess, setSimilarLetterSuccess] = useState("");
+  const [similarLetterError, setSimilarLetterError] = useState("");
   const [localXp, setLocalXp] = useState(0);
   const [localInsight, setLocalInsight] = useState(0);
   const statsRef = useRef(stats);
@@ -1039,25 +1044,13 @@ export function NingYuanGame() {
                                 type="button"
                                 onClick={() => {
                                   setRequestConnectionError("");
-                                  fetch("/api/conversations/request", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ target_soul_id: m.soul_id }),
-                                  })
-                                    .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
-                                    .then(({ ok, data }) => {
-                                      if (!ok) {
-                                        setRequestConnectionError((data?.error as string) ?? "请求失败");
-                                        return;
-                                      }
-                                      setRequestConnectionError("");
-                                      window.open("/chat", "_self");
-                                    })
-                                    .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                                  setSimilarLetterError("");
+                                  setSimilarLetterSuccess("");
+                                  setSimilarLetterTarget({ soulId: m.soul_id, tier: entry.tier });
                                 }}
                                 className="mt-1 block w-full rounded border border-white/20 py-1 text-[10px] text-white/70 hover:bg-white/10"
                               >
-                                请求连接
+                                写一封笺言
                               </button>
                             </li>
                           ))}
@@ -1065,6 +1058,72 @@ export function NingYuanGame() {
                       </div>
                     ))}
                   </div>
+                  {similarLetterTarget && (
+                    <div className="mt-4 max-w-[180px] space-y-2 rounded border border-white/15 bg-white/5 p-2 text-[11px] text-white/80">
+                      <p className="text-[9px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
+                      <p className="mt-1 text-[10px] text-zinc-300">
+                        你可以选择宁愿向{" "}
+                        <span className="font-mono text-white">{similarLetterTarget.soulId}</span> 发出一封人生笺言，
+                        也可以在黑夜中保持安静。
+                      </p>
+                      <textarea
+                        rows={3}
+                        value={similarLetterContent}
+                        onChange={(e) => setSimilarLetterContent(e.target.value)}
+                        className="mt-1 w-full rounded border border-white/20 bg-black/40 px-1.5 py-1 text-[10px] text-white placeholder:text-zinc-500 focus:outline-none"
+                        placeholder="写下一句此刻最想对 TA 说的话（最多 500 字）"
+                      />
+                      {similarLetterError ? <p className="text-[9px] text-red-400">{similarLetterError}</p> : null}
+                      {similarLetterSuccess ? <p className="text-[9px] text-green-400">{similarLetterSuccess}</p> : null}
+                      <div className="mt-1 flex items-center justify-between gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSimilarLetterTarget(null);
+                            setSimilarLetterContent("");
+                            setSimilarLetterError("");
+                            setSimilarLetterSuccess("");
+                          }}
+                          className="rounded border border-white/20 px-2 py-1 text-[9px] text-zinc-400 hover:bg-white/10"
+                        >
+                          在黑夜中保持安静
+                        </button>
+                        <button
+                          type="button"
+                          disabled={similarLetterSending || !similarLetterContent.trim()}
+                          onClick={() => {
+                            if (!similarLetterTarget) return;
+                            setSimilarLetterSending(true);
+                            setSimilarLetterError("");
+                            setSimilarLetterSuccess("");
+                            fetch("/api/soul-letters", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                target_soul_id: similarLetterTarget.soulId,
+                                content: similarLetterContent,
+                                tier: similarLetterTarget.tier,
+                              }),
+                            })
+                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                              .then(({ ok, data }) => {
+                                if (!ok) {
+                                  setSimilarLetterError((data?.error as string) ?? "发送失败");
+                                  return;
+                                }
+                                setSimilarLetterSuccess("笺言已悄悄寄出。只有当 TA 认同时，你们才会成为连接。");
+                                setSimilarLetterContent("");
+                              })
+                              .catch(() => setSimilarLetterError("发送失败，请稍后再试"))
+                              .finally(() => setSimilarLetterSending(false));
+                          }}
+                          className="rounded border border-white/30 bg-white/10 px-3 py-1 text-[9px] text-white/90 hover:bg-white/15 disabled:opacity-40"
+                        >
+                          {similarLetterSending ? "发送中..." : "发出笺言"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -1139,25 +1198,13 @@ export function NingYuanGame() {
                                 type="button"
                                 onClick={() => {
                                   setRequestConnectionError("");
-                                  fetch("/api/conversations/request", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ target_soul_id: m.soul_id }),
-                                  })
-                                    .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
-                                    .then(({ ok, data }) => {
-                                      if (!ok) {
-                                        setRequestConnectionError((data?.error as string) ?? "请求失败");
-                                        return;
-                                      }
-                                      setRequestConnectionError("");
-                                      window.open("/chat", "_self");
-                                    })
-                                    .catch(() => setRequestConnectionError("请求失败，请稍后再试"));
+                                  setSimilarLetterError("");
+                                  setSimilarLetterSuccess("");
+                                  setSimilarLetterTarget({ soulId: m.soul_id, tier: entry.tier });
                                 }}
                                 className="mt-2 block w-full rounded border border-white/20 py-2 text-[10px] text-white/70 hover:bg-white/10"
                               >
-                                请求连接
+                                写一封笺言
                               </button>
                             </li>
                           ))}
@@ -1165,6 +1212,73 @@ export function NingYuanGame() {
                       </div>
                     ))}
                   </div>
+                  {similarLetterTarget && (
+                    <div className="mt-4 space-y-2 rounded border border-white/15 bg-white/5 p-3 text-[11px] text-white/80">
+                      <p className="text-[9px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
+                      <p className="mt-1 text-[10px] text-zinc-300">
+                        你可以选择宁愿向{" "}
+                        <span className="font-mono text-white">{similarLetterTarget.soulId}</span> 发出一封人生笺言，
+                        也可以在黑夜中保持安静。
+                      </p>
+                      <textarea
+                        rows={3}
+                        value={similarLetterContent}
+                        onChange={(e) => setSimilarLetterContent(e.target.value)}
+                        className="mt-1 w-full rounded border border-white/20 bg-black/40 px-1.5 py-1 text-[10px] text-white placeholder:text-zinc-500 focus:outline-none"
+                        placeholder="写下一句此刻最想对 TA 说的话（最多 500 字）"
+                      />
+                      {similarLetterError ? <p className="text-[9px] text-red-400">{similarLetterError}</p> : null}
+                      {similarLetterSuccess ? <p className="text-[9px] text-green-400">{similarLetterSuccess}</p> : null}
+                      <div className="mt-1 flex items-center justify-between gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSimilarLetterTarget(null);
+                            setSimilarLetterContent("");
+                            setSimilarLetterError("");
+                            setSimilarLetterSuccess("");
+                          }}
+                          className="rounded border border-white/20 px-2 py-1 text-[9px] text-zinc-400 hover:bg-white/10"
+                        >
+                          在黑夜中保持安静
+                        </button>
+                        <button
+                          type="button"
+                          disabled={similarLetterSending}
+                          onClick={() => {
+                            if (!similarLetterTarget) return;
+                            setSimilarLetterError("");
+                            setSimilarLetterSuccess("");
+                            setSimilarLetterSending(true);
+                            fetch("/api/soul-letters", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                recipient_soul_id: similarLetterTarget.soulId,
+                                tier: similarLetterTarget.tier,
+                                content: similarLetterContent.slice(0, 500),
+                              }),
+                            })
+                              .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+                              .then(({ ok, data }) => {
+                                if (!ok) {
+                                  setSimilarLetterError((data?.error as string) ?? "发送失败");
+                                  return;
+                                }
+                                setSimilarLetterSuccess("笺言已发出");
+                                setSimilarLetterTarget(null);
+                                setSimilarLetterContent("");
+                              })
+                              .catch(() => setSimilarLetterError("发送失败，请稍后再试"))
+                              .finally(() => setSimilarLetterSending(false));
+                          }}
+                          className="rounded border border-white/30 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20 disabled:opacity-50"
+                        >
+                          {similarLetterSending ? "发送中…" : "发出笺言"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
