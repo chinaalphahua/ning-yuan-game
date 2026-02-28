@@ -40,6 +40,7 @@ export default function ChatPage() {
   const addFriendSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [chatMode, setChatMode] = useState<"dm" | "group">("dm");
   const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsError, setGroupsError] = useState("");
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
@@ -70,14 +71,14 @@ export default function ChatPage() {
       .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
       .then(({ ok, data }) => {
         if (!ok) {
-          setConversationsError("加载失败，请稍后重试");
+          setConversationsError("加载失败，请点击刷新");
           return;
         }
         setConversationsError("");
         setConversations(data?.conversations ?? []);
       })
       .catch(() => {
-        setConversationsError("加载失败，请稍后重试");
+        setConversationsError("加载失败，请点击刷新");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -103,11 +104,21 @@ export default function ChatPage() {
   }, []);
 
   const fetchGroups = useCallback(() => {
+    setGroupsError("");
     setGroupsLoading(true);
     fetch("/api/groups")
-      .then((r) => r.json())
-      .then((d) => setGroups(d.groups ?? []))
-      .catch(() => setGroups([]))
+      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setGroupsError("加载失败，请点击刷新");
+          return;
+        }
+        setGroupsError("");
+        setGroups(data?.groups ?? []);
+      })
+      .catch(() => {
+        setGroupsError("加载失败，请点击刷新");
+      })
       .finally(() => setGroupsLoading(false));
   }, []);
 
@@ -116,16 +127,6 @@ export default function ChatPage() {
     fetchConversations();
     fetchLetters();
   }, [fetchUser, fetchConversations, fetchLetters]);
-
-  useEffect(() => {
-    const onVisible = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        fetchConversations();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [fetchConversations]);
 
   useEffect(() => {
     if (chatMode === "group") fetchGroups();
@@ -509,36 +510,24 @@ export default function ChatPage() {
   );
 
   const ConversationList = () => (
-    <>
-      {!conversationsError && !loading ? (
-        <div className="shrink-0 flex items-center justify-between px-3 py-1.5 border-b border-white/[0.06]">
-          <span className="text-[10px] text-white/40">最近会话</span>
-          <button
-            type="button"
-            onClick={() => fetchConversations()}
-            className="text-[10px] text-white/50 hover:text-white/80 active:text-white touch-manipulation"
-          >
-            刷新
-          </button>
-        </div>
-      ) : null}
+    <div className="min-h-[180px] flex flex-col">
       {loading ? (
         <p className="p-4 text-xs text-white/50">加载中...</p>
       ) : conversationsError ? (
         <div className="p-4 space-y-2">
-          <p className="text-xs text-red-400">{conversationsError}</p>
+          <p className="text-xs text-amber-400">{conversationsError}</p>
           <button
             type="button"
             onClick={() => fetchConversations()}
             className="rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/80 hover:bg-white/10 active:bg-white/15 touch-manipulation"
           >
-            重试
+            刷新
           </button>
         </div>
       ) : conversations.length === 0 ? (
         <p className="p-4 text-xs text-white/50">暂无连接</p>
       ) : (
-        <ul className="p-2 space-y-0.5 md:p-2">
+        <ul className="p-2 space-y-0.5 md:p-2 flex-1">
           {conversations.map((c) => (
             <li key={c.id}>
               <button
@@ -556,11 +545,11 @@ export default function ChatPage() {
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 
   const GroupList = () => (
-    <>
+    <div className="min-h-[180px] flex flex-col">
       <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
         <span className="text-xs text-white/50">群聊</span>
         <button type="button" onClick={() => { setCreateGroupOpen(true); setCreateGroupError(""); }} className="text-xs text-white/80 hover:text-white touch-manipulation">创建群聊</button>
@@ -582,10 +571,21 @@ export default function ChatPage() {
       </div>
       {groupsLoading ? (
         <p className="p-4 text-xs text-white/50">加载中...</p>
+      ) : groupsError ? (
+        <div className="p-4 space-y-2">
+          <p className="text-xs text-amber-400">{groupsError}</p>
+          <button
+            type="button"
+            onClick={() => fetchGroups()}
+            className="rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/80 hover:bg-white/10 active:bg-white/15 touch-manipulation"
+          >
+            刷新
+          </button>
+        </div>
       ) : groups.length === 0 ? (
         <p className="p-4 text-xs text-white/50">暂无群聊</p>
       ) : (
-        <ul className="p-2 space-y-0.5">
+        <ul className="p-2 space-y-0.5 flex-1">
           {groups.map((g) => (
             <li key={g.id}>
               <button
@@ -599,7 +599,7 @@ export default function ChatPage() {
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 
   const ChatModeTabs = () => (
@@ -710,14 +710,11 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden md:hidden overscroll-contain [-webkit-overflow-scrolling:touch]">
+            <div className="flex flex-1 flex-col min-h-0 overflow-hidden min-h-[50vh]">
+              <div className="flex-1 min-h-0 min-h-[240px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-2 md:px-4">
                 <AddFriendSection />
                 <ChatModeTabs />
                 {chatMode === "dm" ? <ConversationList /> : <GroupList />}
-              </div>
-              <div className="hidden md:flex flex-1 min-h-0 items-center justify-center px-4 text-center">
-                <p className="text-sm text-white/50">选择左侧会话或群聊，或创建群聊</p>
               </div>
             </div>
           )}
