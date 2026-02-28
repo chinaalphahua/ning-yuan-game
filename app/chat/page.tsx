@@ -633,12 +633,12 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0">
-        <aside className="hidden sm:block w-52 shrink-0 border-r border-white/[0.06] bg-white/[0.03]" style={{ overflowY: 'auto', minHeight: 0 }}>
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <aside className="glass-panel hidden sm:flex w-52 shrink-0 flex-col border-r border-white/[0.06] overflow-y-auto overflow-x-hidden min-h-0">
+          <SoulLettersSection />
+          <AddFriendSection />
           <ChatModeTabs />
           {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
-          <AddFriendSection />
-          <SoulLettersSection />
         </aside>
 
         <AnimatePresence>
@@ -647,13 +647,13 @@ export default function ChatPage() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-[#08080f]/80 sm:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
               <motion.aside
                 initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.2 }}
-                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] sm:hidden"
+                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] sm:hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
               >
+                <SoulLettersSection />
+                <AddFriendSection />
                 <ChatModeTabs />
                 {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
-                <AddFriendSection />
-                <SoulLettersSection />
               </motion.aside>
             </>
           )}
@@ -670,7 +670,7 @@ export default function ChatPage() {
                 </button>
                 <span className={`text-[10px] ${selected.status === "accepted" ? "text-green-400/60" : "text-amber-400/60"}`}>{selected.status === "accepted" ? "已连接" : "待接受"}</span>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain" style={{ minHeight: 120, WebkitOverflowScrolling: 'touch' }}>
                 <AnimatePresence>
                   {messages.map((m) => (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className={`flex ${m.is_me ? "justify-end" : "justify-start"}`}>
@@ -703,7 +703,7 @@ export default function ChatPage() {
                   <span className="sm:hidden ml-1">▾</span>
                 </button>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain" style={{ minHeight: 120, WebkitOverflowScrolling: 'touch' }}>
                 <AnimatePresence>
                   {groupMessages.map((m) => (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className={`flex ${m.is_me ? "justify-end" : "justify-start"}`}>
