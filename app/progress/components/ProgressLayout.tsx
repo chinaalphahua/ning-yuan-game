@@ -12,16 +12,16 @@ export default function ProgressLayout({ children }: ProgressLayoutProps) {
     <div className="relative flex h-screen h-[100dvh] flex-col bg-[#08080f] text-white">
       <div className="glass-bg" aria-hidden />
       <StarfieldBackground />
-      <header className="glass-panel relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.06] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="glass-panel relative z-10 flex shrink-0 items-center justify-between rounded-b-2xl border-b border-white/[0.08] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-5 md:py-4">
         <Link
           href="/"
-          className="text-[11px] uppercase tracking-widest text-zinc-500 transition hover:text-white/80"
+          className="text-xs font-medium uppercase tracking-widest text-white/70 transition hover:text-white"
         >
           ← 返回
         </Link>
         <Link
           href="/profile"
-          className="text-[11px] uppercase tracking-widest text-zinc-500 transition hover:text-white/80"
+          className="text-xs font-medium uppercase tracking-widest text-white/70 transition hover:text-white"
         >
           个人主页
         </Link>

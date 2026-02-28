@@ -600,7 +600,7 @@ export function NingYuanGame() {
   if (questionOrder === null) {
     return (
       <>
-        <div className="flex min-h-screen w-full items-center justify-center bg-black pb-[env(safe-area-inset-bottom)]">
+        <div className="flex min-h-screen min-h-[100dvh] w-full items-center justify-center bg-[#08080f] pb-[env(safe-area-inset-bottom)]">
           <div className="h-6 w-6 animate-pulse rounded-full border border-white/20" />
         </div>
         <AnimatePresence>
@@ -625,7 +625,7 @@ export function NingYuanGame() {
   if (!currentQuestion) {
   return (
       <>
-        <div className="min-h-screen w-full bg-black pb-[env(safe-area-inset-bottom)]" />
+        <div className="min-h-screen min-h-[100dvh] w-full bg-[#08080f] pb-[env(safe-area-inset-bottom)]" />
         <AnimatePresence>
           {showIntro && (
             <IntroModal
@@ -651,7 +651,7 @@ export function NingYuanGame() {
     const recap = getSacrificeRecap(impactHistoryRef.current);
     return (
       <>
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#08080f] text-white px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6">
           {soulId && (
             <span className="absolute bottom-6 left-4 font-mono text-[10px] opacity-30 md:left-6">
               {soulId}

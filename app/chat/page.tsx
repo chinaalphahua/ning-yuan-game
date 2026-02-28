@@ -350,16 +350,16 @@ export default function ChatPage() {
 
   if (user === undefined) {
     return (
-      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center bg-black text-white p-4">
-        <p className="text-zinc-400">加载中...</p>
+      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center bg-[#08080f] text-white p-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <p className="text-white/60">加载中...</p>
       </div>
     );
   }
   if (!user) {
     return (
-      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center bg-black text-white p-4">
-        <p className="text-zinc-400">请先登录以查看连接。</p>
-        <Link href="/" className="mt-4 border border-white/30 px-6 py-2 text-sm text-white/80 transition hover:bg-white/10">返回试炼</Link>
+      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center bg-[#08080f] text-white p-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <p className="text-white/60">请先登录以查看连接。</p>
+        <Link href="/" className="mt-4 rounded-xl border border-white/30 px-6 py-3 text-sm text-white/80 transition hover:bg-white/10">返回试炼</Link>
       </div>
     );
   }
@@ -489,9 +489,9 @@ export default function ChatPage() {
   const ConversationList = () => (
     <>
       {loading ? (
-        <p className="p-4 text-xs text-zinc-500">加载中...</p>
+        <p className="p-4 text-xs text-white/50">加载中...</p>
       ) : conversations.length === 0 ? (
-        <p className="p-4 text-xs text-zinc-500">暂无连接</p>
+        <p className="p-4 text-xs text-white/50">暂无连接</p>
       ) : (
         <ul className="p-2 space-y-0.5 md:p-2">
           {conversations.map((c) => (
@@ -500,12 +500,12 @@ export default function ChatPage() {
                 type="button"
                 onClick={() => selectConversation(c.id)}
                 className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${
-                  selectedId === c.id ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 active:bg-white/10"
+                  selectedId === c.id ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 active:bg-white/10"
                 }`}
               >
                 <span className="text-sm font-medium">{c.other_display_name || c.other_soul_id}</span>
-                {c.other_display_name ? <span className="ml-1 font-mono text-[10px] text-zinc-500">({c.other_soul_id})</span> : null}
-                <span className="ml-2 text-[10px] text-zinc-500">{c.status === "accepted" ? "已连接" : "待接受"}</span>
+                {c.other_display_name ? <span className="ml-1 font-mono text-[10px] text-white/50">({c.other_soul_id})</span> : null}
+                <span className="ml-2 text-[10px] text-white/50">{c.status === "accepted" ? "已连接" : "待接受"}</span>
               </button>
             </li>
           ))}
@@ -516,11 +516,11 @@ export default function ChatPage() {
 
   const GroupList = () => (
     <>
-      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-zinc-800">
-        <span className="text-xs text-zinc-500">群聊</span>
+      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
+        <span className="text-xs text-white/50">群聊</span>
         <button type="button" onClick={() => { setCreateGroupOpen(true); setCreateGroupError(""); }} className="text-xs text-white/80 hover:text-white touch-manipulation">创建群聊</button>
       </div>
-      <div className="shrink-0 p-2 border-b border-zinc-800">
+      <div className="shrink-0 p-2 border-b border-white/[0.08]">
         <div className="flex gap-1.5">
           <input
             type="text"
@@ -528,7 +528,7 @@ export default function ChatPage() {
             onChange={(e) => { setJoinGroupId(e.target.value); setJoinGroupError(""); }}
             onKeyDown={(e) => e.key === "Enter" && handleJoinGroup()}
             placeholder="输入群 ID 加入"
-            className="flex-1 min-w-0 rounded-lg border border-white/20 bg-zinc-900/80 px-2 py-1.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+            className="flex-1 min-w-0 rounded-lg border border-white/20 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/50 focus:outline-none"
           />
           <button type="button" onClick={handleJoinGroup} disabled={joinGroupLoading || !joinGroupId.trim()} className="shrink-0 rounded-lg border border-white/30 px-2 py-1.5 text-[10px] text-white/90 bg-white/10 disabled:opacity-50 touch-manipulation">加入</button>
         </div>
@@ -536,9 +536,9 @@ export default function ChatPage() {
         {joinGroupSuccess ? <p className="mt-1 text-[10px] text-green-400">已加入</p> : null}
       </div>
       {groupsLoading ? (
-        <p className="p-4 text-xs text-zinc-500">加载中...</p>
+        <p className="p-4 text-xs text-white/50">加载中...</p>
       ) : groups.length === 0 ? (
-        <p className="p-4 text-xs text-zinc-500">暂无群聊</p>
+        <p className="p-4 text-xs text-white/50">暂无群聊</p>
       ) : (
         <ul className="p-2 space-y-0.5">
           {groups.map((g) => (
@@ -546,7 +546,7 @@ export default function ChatPage() {
               <button
                 type="button"
                 onClick={() => selectGroup(g.id)}
-                className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${selectedGroupId === g.id ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 active:bg-white/10"}`}
+                className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${selectedGroupId === g.id ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 active:bg-white/10"}`}
               >
                 <span className="text-sm font-medium">{g.name}</span>
               </button>
@@ -558,9 +558,9 @@ export default function ChatPage() {
   );
 
   const ChatModeTabs = () => (
-    <div className="shrink-0 flex border-b border-zinc-800">
-      <button type="button" onClick={() => { setChatMode("dm"); setSelectedGroupId(null); }} className={`flex-1 py-2.5 text-xs touch-manipulation ${chatMode === "dm" ? "text-white border-b-2 border-white" : "text-zinc-500"}`}>单聊</button>
-      <button type="button" onClick={() => { setChatMode("group"); setSelectedId(null); }} className={`flex-1 py-2.5 text-xs touch-manipulation ${chatMode === "group" ? "text-white border-b-2 border-white" : "text-zinc-500"}`}>群聊</button>
+    <div className="shrink-0 flex border-b border-white/[0.08]">
+      <button type="button" onClick={() => { setChatMode("dm"); setSelectedGroupId(null); }} className={`flex-1 py-2.5 text-xs touch-manipulation ${chatMode === "dm" ? "text-white border-b-2 border-white" : "text-white/50"}`}>单聊</button>
+      <button type="button" onClick={() => { setChatMode("group"); setSelectedId(null); }} className={`flex-1 py-2.5 text-xs touch-manipulation ${chatMode === "group" ? "text-white border-b-2 border-white" : "text-white/50"}`}>群聊</button>
     </div>
   );
 
@@ -595,16 +595,16 @@ export default function ChatPage() {
         <AnimatePresence>
           {drawerOpen && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-black/60 md:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-[#08080f]/80 md:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
               <motion.aside
                 initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.2 }}
-                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-zinc-800 overflow-y-auto bg-black md:hidden"
+                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] md:hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 <SoulLettersSection />
                 <AddFriendSection />
                 <ChatModeTabs />
-                <div className="p-2 border-b border-zinc-800 text-xs text-zinc-500">切换会话</div>
+                <div className="p-2 border-b border-white/[0.08] text-xs text-white/50">切换会话</div>
                 {chatMode === "dm" ? <ConversationList /> : <GroupList />}
               </motion.aside>
             </>
@@ -614,8 +614,8 @@ export default function ChatPage() {
         <main className="flex flex-1 flex-col min-h-0 overflow-hidden">
           {selected ? (
             <>
-              <div className="md:hidden shrink-0 border-b border-zinc-800 px-4 py-2 min-h-[44px] flex items-center">
-                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-mono text-white/90 touch-manipulation">{(selected.other_display_name || selected.other_soul_id)} ▾</button>
+              <div className="md:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
+                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{(selected.other_display_name || selected.other_soul_id)} ▾</button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
@@ -644,8 +644,8 @@ export default function ChatPage() {
             </>
           ) : selectedGroup ? (
             <>
-              <div className="md:hidden shrink-0 border-b border-zinc-800 px-4 py-2 min-h-[44px] flex items-center">
-                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-mono text-white/90 touch-manipulation">{selectedGroup.name} ▾</button>
+              <div className="md:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
+                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{selectedGroup.name} ▾</button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
@@ -665,14 +665,14 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col min-h-0">
-              <div className="flex-1 overflow-y-auto md:hidden">
+            <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden md:hidden overscroll-contain [-webkit-overflow-scrolling:touch]">
                 <AddFriendSection />
                 <ChatModeTabs />
                 {chatMode === "dm" ? <ConversationList /> : <GroupList />}
               </div>
-              <div className="hidden md:flex flex-1 items-center justify-center px-4 text-center">
-                <p className="text-sm text-zinc-500">选择左侧会话或群聊，或创建群聊</p>
+              <div className="hidden md:flex flex-1 min-h-0 items-center justify-center px-4 text-center">
+                <p className="text-sm text-white/50">选择左侧会话或群聊，或创建群聊</p>
               </div>
             </div>
           )}
@@ -685,11 +685,11 @@ export default function ChatPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xl" onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)} aria-hidden />
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-lg fixed left-1/2 top-1/2 z-40 w-[90%] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-2xl p-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-sm font-medium text-white mb-3">创建群聊</h3>
-              <input type="text" value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value)} placeholder="群名称" className="w-full rounded-lg border border-white/20 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none mb-4" maxLength={50} />
-              <p className="text-[10px] text-zinc-500 mb-2">选择已连接的好友加入群聊（可选）</p>
+              <input type="text" value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value)} placeholder="群名称" className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-white/30 focus:outline-none mb-4" maxLength={50} />
+              <p className="text-[10px] text-white/50 mb-2">选择已连接的好友加入群聊（可选）</p>
               <div className="max-h-[200px] overflow-y-auto space-y-1 mb-4">
                 {conversations.filter((c) => c.status === "accepted").length === 0 ? (
-                  <p className="text-xs text-zinc-500 py-2">暂无已连接好友</p>
+                  <p className="text-xs text-white/50 py-2">暂无已连接好友</p>
                 ) : (
                   conversations.filter((c) => c.status === "accepted").map((c) => (
                     <label key={c.id} className="flex items-center gap-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer">
@@ -701,7 +701,7 @@ export default function ChatPage() {
               </div>
               {createGroupError ? <p className="mb-3 text-xs text-red-400">{createGroupError}</p> : null}
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => !createGroupSubmitting && (setCreateGroupOpen(false), setCreateGroupError(""))} className="px-4 py-2 text-xs text-zinc-400 hover:text-white touch-manipulation">取消</button>
+                <button type="button" onClick={() => !createGroupSubmitting && (setCreateGroupOpen(false), setCreateGroupError(""))} className="px-4 py-2 text-xs text-white/50 hover:text-white touch-manipulation">取消</button>
                 <button type="button" onClick={createGroup} disabled={createGroupSubmitting} className="rounded-lg border border-white/30 px-4 py-2 text-xs text-white/90 bg-white/10 hover:bg-white/15 disabled:opacity-50 touch-manipulation">{createGroupSubmitting ? "创建中…" : "创建"}</button>
               </div>
             </motion.div>
