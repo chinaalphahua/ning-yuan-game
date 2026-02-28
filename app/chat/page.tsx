@@ -630,7 +630,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         <aside className="glass-panel hidden sm:flex w-48 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex-col">
           <SoulLettersSection />
           <AddFriendSection />
@@ -657,7 +657,7 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
 
-        <main className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">
+        <main className="relative flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {selected ? (
             <>
               <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
@@ -711,7 +711,7 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4">
+            <div style={{ flex: '1 1 0%', overflowY: 'auto', overflowX: 'hidden', padding: '16px' }}>
               <h2 className="pb-3 text-base font-semibold text-white">连接</h2>
               <AddFriendSection />
               <ChatModeTabs />
