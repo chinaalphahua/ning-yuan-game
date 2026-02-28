@@ -23,6 +23,7 @@ type SoulLetter = {
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversationsError, setConversationsError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -63,10 +64,21 @@ export default function ChatPage() {
   }, []);
 
   const fetchConversations = useCallback(() => {
+    setConversationsError("");
+    setLoading(true);
     fetch("/api/conversations")
-      .then((r) => r.json())
-      .then((d) => setConversations(d.conversations ?? []))
-      .catch(() => setConversations([]))
+      .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setConversationsError("加载失败，请稍后重试");
+          return;
+        }
+        setConversationsError("");
+        setConversations(data?.conversations ?? []);
+      })
+      .catch(() => {
+        setConversationsError("加载失败，请稍后重试");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -104,6 +116,16 @@ export default function ChatPage() {
     fetchConversations();
     fetchLetters();
   }, [fetchUser, fetchConversations, fetchLetters]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchConversations();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [fetchConversations]);
 
   useEffect(() => {
     if (chatMode === "group") fetchGroups();
@@ -488,8 +510,31 @@ export default function ChatPage() {
 
   const ConversationList = () => (
     <>
+      {!conversationsError && !loading ? (
+        <div className="shrink-0 flex items-center justify-between px-3 py-1.5 border-b border-white/[0.06]">
+          <span className="text-[10px] text-white/40">最近会话</span>
+          <button
+            type="button"
+            onClick={() => fetchConversations()}
+            className="text-[10px] text-white/50 hover:text-white/80 active:text-white touch-manipulation"
+          >
+            刷新
+          </button>
+        </div>
+      ) : null}
       {loading ? (
         <p className="p-4 text-xs text-white/50">加载中...</p>
+      ) : conversationsError ? (
+        <div className="p-4 space-y-2">
+          <p className="text-xs text-red-400">{conversationsError}</p>
+          <button
+            type="button"
+            onClick={() => fetchConversations()}
+            className="rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/80 hover:bg-white/10 active:bg-white/15 touch-manipulation"
+          >
+            重试
+          </button>
+        </div>
       ) : conversations.length === 0 ? (
         <p className="p-4 text-xs text-white/50">暂无连接</p>
       ) : (
