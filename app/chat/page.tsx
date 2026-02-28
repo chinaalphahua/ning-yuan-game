@@ -657,7 +657,7 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
 
-        <main className="flex flex-1 flex-col min-h-0 overflow-hidden">
+        <main className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">
           {selected ? (
             <>
               <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
@@ -711,14 +711,12 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col min-h-0 overflow-hidden min-h-[50vh]">
-              <div className="flex-1 min-h-0 min-h-[280px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-3 md:px-4 py-2">
-                <h2 className="shrink-0 pt-1 pb-3 text-base font-semibold text-white">连接</h2>
-                <AddFriendSection />
-                <ChatModeTabs />
-                <div className="mt-2">
-                  {chatMode === "dm" ? <ConversationList /> : <GroupList />}
-                </div>
+            <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4">
+              <h2 className="pb-3 text-base font-semibold text-white">连接</h2>
+              <AddFriendSection />
+              <ChatModeTabs />
+              <div className="mt-2">
+                {chatMode === "dm" ? <ConversationList /> : <GroupList />}
               </div>
             </div>
           )}
