@@ -7,7 +7,7 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ conversations: [], _debug: "not_authenticated" }, { status: 200 });
+      return NextResponse.json({ conversations: [] }, { status: 401 });
     }
 
     const admin = createAdminClient();
@@ -20,7 +20,7 @@ export async function GET() {
 
     if (queryErr) {
       console.error("conversations query error:", queryErr);
-      return NextResponse.json({ conversations: [], _debug: "query_error", _msg: queryErr.message }, { status: 500 });
+      return NextResponse.json({ conversations: [] }, { status: 500 });
     }
 
     const list: { id: string; other_soul_id: string; other_display_name: string | null; status: string; created_at: string }[] = [];
@@ -35,10 +35,9 @@ export async function GET() {
         created_at: r.created_at,
       });
     }
-    return NextResponse.json({ conversations: list, _debug: "ok", _user_id: user.id, _rows_count: (rows ?? []).length });
+    return NextResponse.json({ conversations: list });
   } catch (e) {
     console.error("conversations GET error:", e);
-    const msg = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ conversations: [], _debug: "exception", _msg: msg }, { status: 500 });
+    return NextResponse.json({ conversations: [] }, { status: 500 });
   }
 }

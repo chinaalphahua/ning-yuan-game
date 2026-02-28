@@ -509,38 +509,42 @@ export default function ChatPage() {
     </div>
   );
 
-  const ConversationList = () => (
-    <div className="flex flex-col rounded-lg border border-white/20 bg-white/5 overflow-visible">
-      <p className="p-2 text-xs text-yellow-400">状态: loading={String(loading)}, error={conversationsError || "无"}, count={conversations.length}</p>
+  const ConversationList = ({ compact = false }: { compact?: boolean }) => (
+    <div className="flex flex-col">
       {loading ? (
-        <p className="p-4 text-sm text-white/80">加载中...</p>
+        <p className={`${compact ? "p-2 text-xs" : "p-4 text-sm"} text-white/60`}>加载中...</p>
       ) : conversationsError ? (
-        <div className="p-4 space-y-3">
-          <p className="text-sm text-amber-300 font-medium">{conversationsError}</p>
-          <button
-            type="button"
-            onClick={() => fetchConversations()}
-            className="rounded-lg border border-white/40 px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
-          >
-            刷新
-          </button>
+        <div className={`${compact ? "p-2" : "p-4"} space-y-2`}>
+          <p className={`${compact ? "text-xs" : "text-sm"} text-amber-300`}>{conversationsError}</p>
+          <button type="button" onClick={() => fetchConversations()} className="rounded-lg border border-white/30 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10 touch-manipulation">刷新</button>
         </div>
       ) : conversations.length === 0 ? (
-        <p className="p-4 text-sm text-white/70">暂无连接，可在上方搜 ID 加好友</p>
+        <p className={`${compact ? "p-2 text-xs" : "p-4 text-sm"} text-white/50`}>暂无连接，搜 ID 加好友</p>
       ) : (
-        <ul className="p-2 space-y-1">
+        <ul className={compact ? "py-1" : "py-2 space-y-0.5"}>
           {conversations.map((c) => (
             <li key={c.id}>
               <button
                 type="button"
                 onClick={() => selectConversation(c.id)}
-                className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${
-                  selectedId === c.id ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10 active:bg-white/15"
+                className={`w-full text-left touch-manipulation transition-colors ${compact
+                  ? `px-3 py-2 text-xs ${selectedId === c.id ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/8"}`
+                  : `rounded-xl px-4 py-3.5 ${selectedId === c.id ? "bg-white/10 text-white ring-1 ring-white/20" : "text-white/80 hover:bg-white/[0.06]"}`
                 }`}
               >
-                <span className="text-sm font-medium">{c.other_display_name || c.other_soul_id}</span>
-                {c.other_display_name ? <span className="ml-1 font-mono text-[10px] text-white/50">({c.other_soul_id})</span> : null}
-                <span className="ml-2 text-[10px] text-white/50">{c.status === "accepted" ? "已连接" : "待接受"}</span>
+                <div className="flex items-center gap-2">
+                  <div className={`${compact ? "w-6 h-6 text-[10px]" : "w-9 h-9 text-sm"} rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center font-medium text-white/80 shrink-0`}>
+                    {(c.other_display_name || c.other_soul_id).charAt(0)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`${compact ? "text-xs" : "text-sm"} font-medium truncate`}>{c.other_display_name || c.other_soul_id}</span>
+                      {c.status === "pending" && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                    </div>
+                    {!compact && c.other_display_name ? <p className="font-mono text-[10px] text-white/40 truncate">{c.other_soul_id}</p> : null}
+                  </div>
+                  {!compact && <span className={`shrink-0 text-[10px] ${c.status === "accepted" ? "text-white/40" : "text-amber-400"}`}>{c.status === "accepted" ? "已连接" : "待接受"}</span>}
+                </div>
               </button>
             </li>
           ))}
@@ -550,51 +554,50 @@ export default function ChatPage() {
   );
 
   const GroupList = () => (
-    <div className="min-h-[180px] flex flex-col rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden">
-      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
-        <span className="text-xs text-white/50">群聊</span>
-        <button type="button" onClick={() => { setCreateGroupOpen(true); setCreateGroupError(""); }} className="text-xs text-white/80 hover:text-white touch-manipulation">创建群聊</button>
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
+        <span className="text-xs text-white/40">群聊</span>
+        <button type="button" onClick={() => { setCreateGroupOpen(true); setCreateGroupError(""); }} className="text-xs text-white/60 hover:text-white touch-manipulation">+ 创建</button>
       </div>
-      <div className="shrink-0 p-2 border-b border-white/[0.08]">
+      <div className="px-3 py-2 border-b border-white/[0.08]">
         <div className="flex gap-1.5">
           <input
             type="text"
             value={joinGroupId}
             onChange={(e) => { setJoinGroupId(e.target.value); setJoinGroupError(""); }}
             onKeyDown={(e) => e.key === "Enter" && handleJoinGroup()}
-            placeholder="输入群 ID 加入"
-            className="flex-1 min-w-0 rounded-lg border border-white/20 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/50 focus:outline-none"
+            placeholder="群 ID"
+            className="flex-1 min-w-0 rounded-lg border border-white/15 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-white/25"
           />
-          <button type="button" onClick={handleJoinGroup} disabled={joinGroupLoading || !joinGroupId.trim()} className="shrink-0 rounded-lg border border-white/30 px-2 py-1.5 text-[10px] text-white/90 bg-white/10 disabled:opacity-50 touch-manipulation">加入</button>
+          <button type="button" onClick={handleJoinGroup} disabled={joinGroupLoading || !joinGroupId.trim()} className="shrink-0 rounded-lg border border-white/20 px-2.5 py-1.5 text-[10px] text-white/80 hover:bg-white/10 disabled:opacity-40 touch-manipulation">加入</button>
         </div>
         {joinGroupError ? <p className="mt-1 text-[10px] text-red-400">{joinGroupError}</p> : null}
         {joinGroupSuccess ? <p className="mt-1 text-[10px] text-green-400">已加入</p> : null}
       </div>
       {groupsLoading ? (
-        <p className="p-4 text-sm text-white/80">加载中...</p>
+        <p className="p-3 text-xs text-white/50">加载中...</p>
       ) : groupsError ? (
-        <div className="p-4 space-y-3">
-          <p className="text-sm text-amber-300 font-medium">{groupsError}</p>
-          <button
-            type="button"
-            onClick={() => fetchGroups()}
-            className="rounded-lg border border-white/40 px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
-          >
-            刷新
-          </button>
+        <div className="p-3 space-y-2">
+          <p className="text-xs text-amber-300">{groupsError}</p>
+          <button type="button" onClick={() => fetchGroups()} className="rounded-lg border border-white/30 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10 touch-manipulation">刷新</button>
         </div>
       ) : groups.length === 0 ? (
-        <p className="p-4 text-sm text-white/70">暂无群聊，可创建或输入群 ID 加入</p>
+        <p className="p-3 text-xs text-white/50">暂无群聊</p>
       ) : (
-        <ul className="p-2 space-y-0.5 flex-1">
+        <ul className="py-1">
           {groups.map((g) => (
             <li key={g.id}>
               <button
                 type="button"
                 onClick={() => selectGroup(g.id)}
-                className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${selectedGroupId === g.id ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 active:bg-white/10"}`}
+                className={`w-full px-3 py-2.5 text-left touch-manipulation transition-colors ${selectedGroupId === g.id ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/[0.06]"}`}
               >
-                <span className="text-sm font-medium">{g.name}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 text-[10px] rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center font-medium text-white/80 shrink-0">
+                    {g.name.charAt(0)}
+                  </div>
+                  <span className="text-xs font-medium truncate">{g.name}</span>
+                </div>
               </button>
             </li>
           ))}
@@ -624,18 +627,18 @@ export default function ChatPage() {
           {selected ? <span className="ml-2 truncate text-sm text-white/90 md:ml-0">{selected.other_display_name || selected.other_soul_id}</span> : null}
           {selectedGroup ? <span className="ml-2 truncate text-sm text-white/90 md:ml-0">{selectedGroup.name}</span> : null}
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="hidden md:inline font-mono text-[10px] opacity-50">{user.soul_id}</span>
-          <button type="button" onClick={handleLogout} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xs text-zinc-500 underline hover:text-white touch-manipulation">退出</button>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="font-mono text-[10px] text-white/40">{user.soul_id}</span>
+          <button type="button" onClick={handleLogout} className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xs text-white/40 hover:text-white touch-manipulation">退出</button>
         </div>
       </header>
 
       <div className="flex flex-1 min-h-0">
-        <aside className="glass-panel hidden sm:flex w-48 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex-col">
+        <aside className="glass-panel hidden sm:flex w-52 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex-col">
           <SoulLettersSection />
           <AddFriendSection />
           <ChatModeTabs />
-          {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+          {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
         </aside>
 
         <AnimatePresence>
@@ -650,8 +653,7 @@ export default function ChatPage() {
                 <SoulLettersSection />
                 <AddFriendSection />
                 <ChatModeTabs />
-                <div className="p-2 border-b border-white/[0.08] text-xs text-white/50">切换会话</div>
-                {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+                {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
               </motion.aside>
             </>
           )}
@@ -711,12 +713,23 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div style={{ flex: '1 1 0%', overflowY: 'auto', overflowX: 'hidden', padding: '16px' }}>
-              <h2 className="pb-3 text-base font-semibold text-white">连接</h2>
-              <AddFriendSection />
-              <ChatModeTabs />
-              <div className="mt-2">
-                {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+            <div style={{ flex: '1 1 0%', overflowY: 'auto', overflowX: 'hidden' }}>
+              {/* 桌面端：侧边栏已有列表，主区域显示欢迎 */}
+              <div className="hidden sm:flex flex-col items-center justify-center h-full text-center px-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center mb-4">
+                  <span className="text-2xl opacity-60">💬</span>
+                </div>
+                <p className="text-sm text-white/50">从左侧选择一个会话开始聊天</p>
+                <p className="mt-1 text-xs text-white/30">或搜索灵魂 ID 添加新好友</p>
+              </div>
+              {/* 移动端：显示完整列表 */}
+              <div className="sm:hidden px-4 py-4">
+                <h2 className="pb-3 text-base font-semibold text-white">连接</h2>
+                <AddFriendSection />
+                <ChatModeTabs />
+                <div className="mt-3">
+                  {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+                </div>
               </div>
             </div>
           )}
