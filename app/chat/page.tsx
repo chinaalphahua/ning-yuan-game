@@ -510,7 +510,8 @@ export default function ChatPage() {
   );
 
   const ConversationList = () => (
-    <div className="min-h-[180px] flex flex-col rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden">
+    <div className="flex flex-col rounded-lg border border-white/20 bg-white/5 overflow-visible">
+      <p className="p-2 text-xs text-yellow-400">状态: loading={String(loading)}, error={conversationsError || "无"}, count={conversations.length}</p>
       {loading ? (
         <p className="p-4 text-sm text-white/80">加载中...</p>
       ) : conversationsError ? (
@@ -527,14 +528,14 @@ export default function ChatPage() {
       ) : conversations.length === 0 ? (
         <p className="p-4 text-sm text-white/70">暂无连接，可在上方搜 ID 加好友</p>
       ) : (
-        <ul className="p-2 space-y-0.5 md:p-2 flex-1">
+        <ul className="p-2 space-y-1">
           {conversations.map((c) => (
             <li key={c.id}>
               <button
                 type="button"
                 onClick={() => selectConversation(c.id)}
                 className={`w-full rounded-lg px-4 py-3 text-left min-h-[52px] touch-manipulation ${
-                  selectedId === c.id ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 active:bg-white/10"
+                  selectedId === c.id ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10 active:bg-white/15"
                 }`}
               >
                 <span className="text-sm font-medium">{c.other_display_name || c.other_soul_id}</span>
