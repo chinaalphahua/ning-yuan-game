@@ -615,7 +615,7 @@ export default function ChatPage() {
       <header className="relative z-10 glass-panel flex shrink-0 items-center justify-between border-b border-white/[0.08] px-4 py-3 min-h-[48px] touch-manipulation">
         <div className="flex items-center gap-2 min-w-0">
           {selectedId || selectedGroupId ? (
-            <button type="button" onClick={() => { setSelectedId(null); setSelectedGroupId(null); }} className="flex h-10 w-10 -ml-2 items-center justify-center rounded-full text-white/80 hover:bg-white/10 active:bg-white/15 md:hidden" aria-label="返回会话列表">
+            <button type="button" onClick={() => { setSelectedId(null); setSelectedGroupId(null); }} className="flex h-10 w-10 -ml-2 items-center justify-center rounded-full text-white/80 hover:bg-white/10 active:bg-white/15 sm:hidden" aria-label="返回会话列表">
               <ChevronLeft size={20} />
             </button>
           ) : null}
@@ -630,7 +630,7 @@ export default function ChatPage() {
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <aside className="glass-panel hidden md:block w-48 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex flex-col">
+        <aside className="glass-panel hidden sm:flex w-48 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex-col">
           <SoulLettersSection />
           <AddFriendSection />
           <ChatModeTabs />
@@ -640,10 +640,10 @@ export default function ChatPage() {
         <AnimatePresence>
           {drawerOpen && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-[#08080f]/80 md:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-[#08080f]/80 sm:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
               <motion.aside
                 initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.2 }}
-                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] md:hidden"
+                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] sm:hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 <SoulLettersSection />
@@ -659,7 +659,7 @@ export default function ChatPage() {
         <main className="flex flex-1 flex-col min-h-0 overflow-hidden">
           {selected ? (
             <>
-              <div className="md:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
+              <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
                 <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{(selected.other_display_name || selected.other_soul_id)} ▾</button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
@@ -689,7 +689,7 @@ export default function ChatPage() {
             </>
           ) : selectedGroup ? (
             <>
-              <div className="md:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
+              <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
                 <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{selectedGroup.name} ▾</button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
@@ -711,7 +711,8 @@ export default function ChatPage() {
             </>
           ) : (
             <div className="flex flex-1 flex-col min-h-0 overflow-hidden min-h-[50vh]">
-              <div className="flex-1 min-h-0 min-h-[240px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-2 md:px-4">
+              <div className="flex-1 min-h-0 min-h-[280px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-2 md:px-4">
+                <h2 className="shrink-0 pt-3 pb-2 text-sm font-medium text-white/90">连接</h2>
                 <AddFriendSection />
                 <ChatModeTabs />
                 {chatMode === "dm" ? <ConversationList /> : <GroupList />}
