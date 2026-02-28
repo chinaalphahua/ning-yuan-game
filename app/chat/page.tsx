@@ -634,11 +634,11 @@ export default function ChatPage() {
       </header>
 
       <div className="flex flex-1 min-h-0">
-        <aside className="glass-panel hidden sm:flex w-52 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex-col">
-          <SoulLettersSection />
-          <AddFriendSection />
+        <aside className="hidden sm:block w-52 shrink-0 border-r border-white/[0.06] bg-white/[0.03]" style={{ overflowY: 'auto', minHeight: 0 }}>
           <ChatModeTabs />
           {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
+          <AddFriendSection />
+          <SoulLettersSection />
         </aside>
 
         <AnimatePresence>
@@ -650,10 +650,10 @@ export default function ChatPage() {
                 className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] sm:hidden"
                 onClick={(e) => e.stopPropagation()}
               >
-                <SoulLettersSection />
-                <AddFriendSection />
                 <ChatModeTabs />
                 {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
+                <AddFriendSection />
+                <SoulLettersSection />
               </motion.aside>
             </>
           )}
