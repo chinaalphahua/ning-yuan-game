@@ -510,22 +510,22 @@ export default function ChatPage() {
   );
 
   const ConversationList = () => (
-    <div className="min-h-[180px] flex flex-col">
+    <div className="min-h-[180px] flex flex-col rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden">
       {loading ? (
-        <p className="p-4 text-xs text-white/50">加载中...</p>
+        <p className="p-4 text-sm text-white/80">加载中...</p>
       ) : conversationsError ? (
-        <div className="p-4 space-y-2">
-          <p className="text-xs text-amber-400">{conversationsError}</p>
+        <div className="p-4 space-y-3">
+          <p className="text-sm text-amber-300 font-medium">{conversationsError}</p>
           <button
             type="button"
             onClick={() => fetchConversations()}
-            className="rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/80 hover:bg-white/10 active:bg-white/15 touch-manipulation"
+            className="rounded-lg border border-white/40 px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
           >
             刷新
           </button>
         </div>
       ) : conversations.length === 0 ? (
-        <p className="p-4 text-xs text-white/50">暂无连接</p>
+        <p className="p-4 text-sm text-white/70">暂无连接，可在上方搜 ID 加好友</p>
       ) : (
         <ul className="p-2 space-y-0.5 md:p-2 flex-1">
           {conversations.map((c) => (
@@ -549,7 +549,7 @@ export default function ChatPage() {
   );
 
   const GroupList = () => (
-    <div className="min-h-[180px] flex flex-col">
+    <div className="min-h-[180px] flex flex-col rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden">
       <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
         <span className="text-xs text-white/50">群聊</span>
         <button type="button" onClick={() => { setCreateGroupOpen(true); setCreateGroupError(""); }} className="text-xs text-white/80 hover:text-white touch-manipulation">创建群聊</button>
@@ -570,20 +570,20 @@ export default function ChatPage() {
         {joinGroupSuccess ? <p className="mt-1 text-[10px] text-green-400">已加入</p> : null}
       </div>
       {groupsLoading ? (
-        <p className="p-4 text-xs text-white/50">加载中...</p>
+        <p className="p-4 text-sm text-white/80">加载中...</p>
       ) : groupsError ? (
-        <div className="p-4 space-y-2">
-          <p className="text-xs text-amber-400">{groupsError}</p>
+        <div className="p-4 space-y-3">
+          <p className="text-sm text-amber-300 font-medium">{groupsError}</p>
           <button
             type="button"
             onClick={() => fetchGroups()}
-            className="rounded-lg border border-white/30 px-3 py-2 text-[10px] text-white/80 hover:bg-white/10 active:bg-white/15 touch-manipulation"
+            className="rounded-lg border border-white/40 px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 active:bg-white/15 touch-manipulation"
           >
             刷新
           </button>
         </div>
       ) : groups.length === 0 ? (
-        <p className="p-4 text-xs text-white/50">暂无群聊</p>
+        <p className="p-4 text-sm text-white/70">暂无群聊，可创建或输入群 ID 加入</p>
       ) : (
         <ul className="p-2 space-y-0.5 flex-1">
           {groups.map((g) => (
@@ -656,7 +656,7 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
 
-        <main className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">
+        <main className="flex flex-1 flex-col min-h-0 overflow-hidden">
           {selected ? (
             <>
               <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
@@ -710,12 +710,14 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden min-h-[50vh]">
-              <div className="flex-1 min-h-0 min-w-0 min-h-[280px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-2 md:px-4">
-                <h2 className="shrink-0 pt-3 pb-2 text-sm font-medium text-white/90" id="chat-connect-heading">连接</h2>
+            <div className="flex flex-1 flex-col min-h-0 overflow-hidden min-h-[50vh]">
+              <div className="flex-1 min-h-0 min-h-[280px] overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] px-3 md:px-4 py-2">
+                <h2 className="shrink-0 pt-1 pb-3 text-base font-semibold text-white">连接</h2>
                 <AddFriendSection />
                 <ChatModeTabs />
-                {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+                <div className="mt-2">
+                  {chatMode === "dm" ? <ConversationList /> : <GroupList />}
+                </div>
               </div>
             </div>
           )}

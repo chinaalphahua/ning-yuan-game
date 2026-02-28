@@ -6,16 +6,18 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+    if (!user) return NextResponse.json({ error: "未登录", groups: [] }, { status: 401 });
 
-    const { data: memberships } = await supabase
+    const admin = createAdminClient();
+
+    const { data: memberships } = await admin
       .from("group_members")
       .select("group_id")
       .eq("user_id", user.id);
     if (!memberships?.length) return NextResponse.json({ groups: [] });
 
     const groupIds = memberships.map((m) => m.group_id);
-    const { data: groupRows } = await supabase
+    const { data: groupRows } = await admin
       .from("groups")
       .select("id, name, created_by_id, created_at")
       .in("id", groupIds)
@@ -28,7 +30,8 @@ export async function GET() {
       created_at: g.created_at,
     }));
     return NextResponse.json({ groups: list });
-  } catch {
+  } catch (e) {
+    console.error("groups GET error:", e);
     return NextResponse.json({ error: "服务器错误", groups: [] }, { status: 500 });
   }
 }
