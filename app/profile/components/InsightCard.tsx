@@ -40,7 +40,7 @@ export default function InsightCard({ record, isFlipped, onFlip }: InsightCardPr
       >
         {/* 正面：content + 深度 + 等级 */}
         <div
-          className="absolute inset-0 flex flex-col justify-between rounded border border-white/[0.1] bg-white/[0.04] p-4"
+          className="glass absolute inset-0 flex flex-col justify-between rounded-lg p-4"
           style={{ backfaceVisibility: "hidden" }}
         >
           <p className="line-clamp-3 text-sm leading-relaxed text-zinc-300">{record.content || "—"}</p>
@@ -54,7 +54,7 @@ export default function InsightCard({ record, isFlipped, onFlip }: InsightCardPr
         </div>
         {/* 背面：AI 批语 */}
         <div
-          className="absolute inset-0 flex flex-col justify-center rounded border border-white/[0.1] bg-white/[0.06] p-4"
+          className="glass-md absolute inset-0 flex flex-col justify-center rounded-lg p-4"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           <p className="text-[10px] uppercase tracking-wider text-zinc-500">AI 批语</p>

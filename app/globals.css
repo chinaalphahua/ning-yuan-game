@@ -3,7 +3,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* 动态视口高度，随浏览器 UI 显示/隐藏变化；不支持时回退 100vh */
   --viewport-height: 100vh;
   --viewport-height-dynamic: 100dvh;
 }
@@ -44,6 +43,165 @@ body {
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* =============================================
+   *  玻璃拟态系统
+   *
+   *  背景：多层径向渐变直接写在 .glass-bg 上，
+   *  无需额外 HTML 元素，渐变本身柔和，没有矩形边缘。
+   *  glass 卡片用 backdrop-filter 模糊这些渐变，
+   *  产生自然的磨砂感。
+   * ============================================= */
+
+  .glass-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(40,50,120,0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 70% 50% at 80% 30%, rgba(50,40,110,0.4) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 30% 70%, rgba(35,45,100,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 90% 60% at 70% 80%, rgba(45,35,100,0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 100% 80% at 50% 50%, rgba(30,35,80,0.25) 0%, transparent 60%),
+      linear-gradient(160deg, #0e0e18, #08080e, #060609);
+  }
+
+  /* === 玻璃面板 === */
+  .glass {
+    position: relative;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 2px 12px rgba(0,0,0,0.12);
+  }
+
+  .glass-md {
+    position: relative;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.11);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 -1px 0 rgba(0,0,0,0.12),
+      0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .glass-lg {
+    position: relative;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      inset 0 -1px 0 rgba(0,0,0,0.15),
+      0 8px 32px rgba(0,0,0,0.18);
+  }
+
+  .glass-panel {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  /* 主游戏大卡片 */
+  .glass-card-main {
+    position: relative;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 8px 28px rgba(0,0,0,0.18);
+  }
+  .glass-card-main::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+
+  /* 中间分隔小玻璃 */
+  .glass-separator {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+
+  /* 底栏等化器 */
+  .glass-equalizer-bar {
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* 虹彩折射 */
+  .glass-iridescent::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255,140,120,0.025) 20%,
+      rgba(255,220,140,0.03) 35%,
+      rgba(140,255,200,0.03) 50%,
+      rgba(120,160,255,0.03) 65%,
+      transparent 100%
+    );
+    mix-blend-mode: screen;
+  }
+
+  /* 底部竖条：激活发光 */
+  .stat-bar-glow-green {
+    background: linear-gradient(to top, #16a34a, #4ade80);
+    box-shadow: 0 0 10px rgba(34,197,94,0.6), 0 0 24px rgba(74,222,128,0.15);
+  }
+  .stat-bar-glow-blue {
+    background: linear-gradient(to top, #2563eb, #60a5fa);
+    box-shadow: 0 0 10px rgba(59,130,246,0.6), 0 0 24px rgba(96,165,250,0.15);
+  }
+
+  /* 未激活竖条 */
+  .stat-bar-track {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* Modal 蒙层 */
+  .glass-overlay {
+    backdrop-filter: blur(28px) saturate(1.2);
+    -webkit-backdrop-filter: blur(28px) saturate(1.2);
+  }
+
+  /* 兼容旧引用 */
+  .glass-bg-network {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glass-bg-dots {
     display: none;
   }
 }

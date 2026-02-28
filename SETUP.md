@@ -104,3 +104,23 @@
 - [ ] 已执行 `npm run dev` 并在浏览器中测试注册与灵魂伴侣层  
 
 全部打勾后，灵魂伴侣与「我的连接」聊天功能即可在本地正常使用。
+
+---
+
+## schema.sql 与 migrations 的关系
+
+- **`supabase/schema.sql`**：完整建表脚本，包含所有表、RLS、种子数据（含 100 件装扮、权限、成就、徽章等）。**新项目**只需在 SQL Editor 中执行此文件即可一次性完成建表。
+- **`supabase/migrations/001-005`**：增量迁移，用于在**已有数据库**上按顺序升级。若你从零开始，用 schema.sql 即可；若已有旧库，可单独执行缺失的迁移（如 005_soul_letters.sql 创建笺言表）。
+
+---
+
+## 生产部署（Vercel 等）
+
+1. **环境变量**：在部署平台配置与 `.env.local` 相同的三个变量：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+2. **Supabase Site URL**：在 Supabase 控制台 → Authentication → URL Configuration 中，将 **Site URL** 设为生产域名（如 `https://your-app.vercel.app`），否则登录回调可能失败。
+
+3. **数据库**：确认生产 Supabase 已执行完整 schema（或 001–005 迁移），尤其 `soul_letters` 表（笺言功能）和 `avatar_cosmetics` 种子数据（装扮系统）。

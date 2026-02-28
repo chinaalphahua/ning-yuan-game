@@ -71,7 +71,7 @@ export default function CosmeticsBlock() {
 
   if (loading && !data) {
     return (
-      <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-6">
+      <div className="glass glass-iridescent rounded-lg px-4 py-6">
         <div className="h-4 w-24 animate-pulse rounded bg-white/10" />
       </div>
     );
@@ -92,7 +92,7 @@ export default function CosmeticsBlock() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-5">
+      <div className="glass glass-iridescent rounded-2xl px-4 py-5">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-medium tracking-wider text-zinc-400">头像装扮</h3>
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded border border-white/20 bg-zinc-900">
@@ -141,14 +141,14 @@ export default function CosmeticsBlock() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setModalOpen(false)}
           >
             <motion.div
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="w-full max-w-sm rounded-lg border border-white/15 bg-zinc-900 p-5 shadow-xl"
+              className="glass-lg w-full max-w-sm rounded-2xl p-5"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-4 flex items-center justify-between">

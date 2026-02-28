@@ -83,7 +83,7 @@ export default function SimilarSoulsBlock({ hasPrivilege }: SimilarSoulsBlockPro
                   {entry.matches.map((m) => (
                     <li
                       key={`${entry.tier}-${m.soul_id}`}
-                      className="rounded border border-white/15 bg-white/5 p-3"
+                      className="glass rounded-lg p-3"
                     >
                       <div className="flex items-start gap-3">
                         <div className="h-14 w-14 shrink-0 overflow-hidden rounded opacity-90">
@@ -120,7 +120,7 @@ export default function SimilarSoulsBlock({ hasPrivilege }: SimilarSoulsBlockPro
             ))}
           </div>
           {activeSoul && (
-            <div className="mt-6 max-w-md space-y-2 rounded border border-white/15 bg-white/5 p-4 text-xs text-white/80">
+            <div className="glass-md mt-6 max-w-md space-y-2 rounded-lg p-4 text-xs text-white/80">
               <p className="text-[10px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
               <p className="mt-2 text-[11px] text-zinc-300">
                 你可以选择宁愿向 <span className="font-mono text-white">{activeSoul.soulId}</span> 发出一封人生笺言，

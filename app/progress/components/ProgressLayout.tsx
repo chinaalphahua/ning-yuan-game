@@ -9,9 +9,10 @@ interface ProgressLayoutProps {
 
 export default function ProgressLayout({ children }: ProgressLayoutProps) {
   return (
-    <div className="relative flex h-screen h-[100dvh] flex-col bg-[#0a0a0a] text-white">
+    <div className="relative flex h-screen h-[100dvh] flex-col bg-[#08080f] text-white">
+      <div className="glass-bg" aria-hidden />
       <StarfieldBackground />
-      <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.08] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="glass-panel relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.06] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <Link
           href="/"
           className="text-[11px] uppercase tracking-widest text-zinc-500 transition hover:text-white/80"

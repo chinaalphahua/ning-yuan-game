@@ -386,7 +386,7 @@ export default function ChatPage() {
       ) : (
         <ul className="space-y-2 max-h-56 overflow-y-auto pr-1">
           {letters.map((l) => (
-            <li key={l.id} className="rounded border border-white/10 bg-zinc-900/80 p-2 text-[11px] text-zinc-100">
+            <li key={l.id} className="glass rounded-lg p-2 text-[11px] text-zinc-100">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-medium">{l.sender_display_name || l.sender_soul_id}</span>
@@ -448,7 +448,7 @@ export default function ChatPage() {
           onChange={(e) => { setAddFriendId(e.target.value); setAddFriendError(""); }}
           onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
           placeholder="输入灵魂 ID 或昵称，如 NO.NY-7612-X"
-          className="flex-1 min-w-0 rounded-lg border border-white/20 bg-zinc-900/80 px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
+          className="glass flex-1 min-w-0 rounded-lg px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/20"
           maxLength={20}
         />
         <button
@@ -466,7 +466,7 @@ export default function ChatPage() {
         <p className="mt-1.5 text-[10px] text-zinc-500">未找到匹配的灵魂 ID 或昵称</p>
       ) : null}
       {!addFriendSearchLoading && addFriendSearchResults.length > 0 ? (
-        <ul className="mt-1.5 max-h-[160px] overflow-y-auto rounded-lg border border-white/15 bg-zinc-900/90 space-y-0.5 p-1">
+        <ul className="glass-md mt-1.5 max-h-[160px] overflow-y-auto rounded-lg space-y-0.5 p-1">
           {addFriendSearchResults.map((hit) => (
             <li key={hit.soul_id}>
               <button
@@ -565,8 +565,9 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="flex h-screen h-[100dvh] flex-col bg-black text-white pt-[env(safe-area-inset-top)] overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3 min-h-[48px] touch-manipulation">
+    <div className="relative flex h-screen h-[100dvh] flex-col bg-[#08080f] text-white pt-[env(safe-area-inset-top)] overflow-hidden">
+      <div className="glass-bg" aria-hidden />
+      <header className="relative z-10 glass-panel flex shrink-0 items-center justify-between border-b border-white/[0.08] px-4 py-3 min-h-[48px] touch-manipulation">
         <div className="flex items-center gap-2 min-w-0">
           {selectedId || selectedGroupId ? (
             <button type="button" onClick={() => { setSelectedId(null); setSelectedGroupId(null); }} className="flex h-10 w-10 -ml-2 items-center justify-center rounded-full text-white/80 hover:bg-white/10 active:bg-white/15 md:hidden" aria-label="返回会话列表">
@@ -584,7 +585,7 @@ export default function ChatPage() {
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <aside className="hidden md:block w-48 shrink-0 border-r border-zinc-800 overflow-y-auto min-h-0 flex flex-col">
+        <aside className="glass-panel hidden md:block w-48 shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 flex flex-col">
           <SoulLettersSection />
           <AddFriendSection />
           <ChatModeTabs />
@@ -621,7 +622,7 @@ export default function ChatPage() {
                   {messages.map((m) => (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className={`flex ${m.is_me ? "justify-end" : "justify-start"}`}>
                       <div className={`flex flex-col max-w-[85%] ${m.is_me ? "items-end" : "items-start"}`}>
-                        <span className={`inline-block rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.is_me ? "rounded-br-md bg-white/15 text-white" : "rounded-bl-md bg-white/8 text-zinc-100"}`}>{m.content}</span>
+                        <span className={`inline-block rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.is_me ? "rounded-br-md glass-md text-white" : "rounded-bl-md glass text-zinc-100"}`}>{m.content}</span>
                         <span className="mt-1 font-mono text-[10px] text-zinc-500">{m.sender_soul_id}</span>
                       </div>
                     </motion.div>
@@ -629,8 +630,8 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
               {selected.status === "accepted" && (
-                <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(3rem,env(safe-area-inset-bottom))] md:pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-black">
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())} placeholder="输入消息..." className="flex-1 min-w-0 min-h-[48px] max-h-[48px] rounded-xl border border-white/20 bg-zinc-900/80 px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none touch-manipulation" autoComplete="off" maxLength={500} />
+                <div className="glass-panel shrink-0 flex gap-2 border-t border-white/[0.06] p-3 pb-[max(3rem,env(safe-area-inset-bottom))] md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())} placeholder="输入消息..." className="glass flex-1 min-w-0 min-h-[48px] max-h-[48px] rounded-xl px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/20 touch-manipulation" autoComplete="off" maxLength={500} />
                   <button type="button" onClick={sendMessage} className="shrink-0 min-h-[48px] min-w-[64px] flex items-center justify-center rounded-xl border border-white/30 px-4 py-3 text-sm font-medium text-white/90 bg-white/10 hover:bg-white/15 active:bg-white/20 touch-manipulation">发送</button>
                 </div>
               )}
@@ -651,15 +652,15 @@ export default function ChatPage() {
                   {groupMessages.map((m) => (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className={`flex ${m.is_me ? "justify-end" : "justify-start"}`}>
                       <div className={`flex flex-col max-w-[85%] ${m.is_me ? "items-end" : "items-start"}`}>
-                        <span className={`inline-block rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.is_me ? "rounded-br-md bg-white/15 text-white" : "rounded-bl-md bg-white/8 text-zinc-100"}`}>{m.content}</span>
+                        <span className={`inline-block rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.is_me ? "rounded-br-md glass-md text-white" : "rounded-bl-md glass text-zinc-100"}`}>{m.content}</span>
                         <span className="mt-1 font-mono text-[10px] text-zinc-500">{m.sender_display_name || m.sender_soul_id}</span>
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
-              <div className="shrink-0 flex gap-2 border-t border-zinc-800 p-3 pb-[max(3rem,env(safe-area-inset-bottom))] md:pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-black">
-                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendGroupMessage())} placeholder="输入消息..." className="flex-1 min-w-0 min-h-[48px] max-h-[48px] rounded-xl border border-white/20 bg-zinc-900/80 px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none touch-manipulation" autoComplete="off" maxLength={500} />
+              <div className="glass-panel shrink-0 flex gap-2 border-t border-white/[0.06] p-3 pb-[max(3rem,env(safe-area-inset-bottom))] md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendGroupMessage())} placeholder="输入消息..." className="glass flex-1 min-w-0 min-h-[48px] max-h-[48px] rounded-xl px-4 py-3 text-[16px] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/20 touch-manipulation" autoComplete="off" maxLength={500} />
                 <button type="button" onClick={sendGroupMessage} className="shrink-0 min-h-[48px] min-w-[64px] flex items-center justify-center rounded-xl border border-white/30 px-4 py-3 text-sm font-medium text-white/90 bg-white/10 hover:bg-white/15 active:bg-white/20 touch-manipulation">发送</button>
               </div>
             </>
@@ -681,8 +682,8 @@ export default function ChatPage() {
       <AnimatePresence>
         {createGroupOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/70 md:bg-black/60" onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)} aria-hidden />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed left-1/2 top-1/2 z-40 w-[90%] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xl" onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)} aria-hidden />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-lg fixed left-1/2 top-1/2 z-40 w-[90%] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-2xl p-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-sm font-medium text-white mb-3">创建群聊</h3>
               <input type="text" value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value)} placeholder="群名称" className="w-full rounded-lg border border-white/20 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none mb-4" maxLength={50} />
               <p className="text-[10px] text-zinc-500 mb-2">选择已连接的好友加入群聊（可选）</p>

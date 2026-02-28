@@ -23,24 +23,24 @@ export default function DataPanel({ level, xp, points, insight }: DataPanelProps
         <span>经验进度</span>
         <span>{expInLevel} / {expNeeded}</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="glass h-2 w-full overflow-hidden rounded-full">
         <motion.div
-          className="h-full rounded-full bg-white/40"
+          className="h-full rounded-full bg-gradient-to-r from-blue-400/90 to-emerald-400/90 shadow-[0_0_14px_rgba(59,130,246,0.35),0_0_14px_rgba(74,222,128,0.4)]"
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, progress)}%` }}
           transition={{ type: "spring", stiffness: 100, damping: 20 }}
         />
       </div>
       <div className="grid grid-cols-3 gap-4 text-center">
-        <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+        <div className="glass glass-iridescent rounded-2xl px-4 py-3">
           <p className="font-mono text-xl text-white/90">{xp}</p>
           <p className="mt-1 text-[10px] tracking-wider text-zinc-500">经验</p>
         </div>
-        <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+        <div className="glass glass-iridescent rounded-2xl px-4 py-3">
           <p className="font-mono text-xl text-white/90">{points}</p>
           <p className="mt-1 text-[10px] tracking-wider text-zinc-500">积分</p>
         </div>
-        <div className="rounded border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+        <div className="glass glass-iridescent rounded-2xl px-4 py-3">
           <p className="font-mono text-xl text-white/90">{insight}</p>
           <p className="mt-1 text-[10px] tracking-wider text-zinc-500">洞察</p>
         </div>

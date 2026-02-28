@@ -32,7 +32,7 @@ export default function BadgeWall({ badges, achievements }: BadgeWallProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.05 }}
-            className="flex flex-col items-center rounded border border-white/[0.1] bg-white/[0.04] p-4"
+            className="glass flex flex-col items-center rounded-lg p-4"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-lg text-white/80">
               {item.icon === "star" ? "★" : item.icon === "flame" ? "🔥" : item.icon === "badge" ? "◆" : "◇"}

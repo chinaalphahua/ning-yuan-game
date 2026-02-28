@@ -716,12 +716,14 @@ export function NingYuanGame() {
   return (
     <>
       <motion.main
-        className="relative flex h-screen h-[100dvh] w-full flex-col overflow-hidden bg-black font-sans text-white select-none pt-[env(safe-area-inset-top)]"
+        className="relative flex h-screen h-[100dvh] w-full flex-col overflow-hidden bg-[#08080f] font-sans text-white select-none pt-[env(safe-area-inset-top)]"
       >
-      {/* 顶部极细进度条 */}
-      <div className="absolute left-0 right-0 top-0 z-30 h-0.5 bg-zinc-900">
+      <div className="glass-bg" aria-hidden />
+
+      {/* 顶部进度条 */}
+      <div className="absolute left-6 right-6 top-2 z-30 h-[3px] overflow-hidden rounded-full bg-white/[0.06] md:left-8 md:right-8">
         <motion.div
-          className="h-full bg-white/40"
+          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
           initial={false}
           animate={{ width: `${progress * 100}%` }}
           transition={{ duration: 0.3 }}
@@ -742,7 +744,7 @@ export function NingYuanGame() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 max-w-[90vw] rounded border border-white/20 bg-zinc-900/95 px-4 py-3 text-center shadow-lg"
+            className="glass-lg fixed bottom-24 left-1/2 z-40 -translate-x-1/2 max-w-[90vw] rounded-2xl px-4 py-3 text-center"
           >
             <p className="text-xs font-medium text-white/90">获得装扮</p>
             <p className="mt-1 text-sm text-white">{droppedCosmetic.name}</p>
@@ -765,33 +767,33 @@ export function NingYuanGame() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className="fixed left-1/2 top-14 z-40 -translate-x-1/2 max-w-[90vw] rounded border border-white/20 bg-zinc-900/95 px-4 py-3 text-center text-xs text-white/90 shadow-lg"
+            className="glass-lg fixed left-1/2 top-14 z-40 -translate-x-1/2 max-w-[90vw] rounded-2xl px-4 py-3 text-center text-xs text-white/90"
           >
             在完成第 20/40/60/80/100 题时会看到灵魂匹配 · 继续答题即可
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 情境区 */}
-      <div className="absolute left-0 right-0 top-[10%] z-10 px-4 text-center pointer-events-none md:top-[16%] md:px-6">
+      {/* 情境区标题 */}
+      <div className="relative z-10 shrink-0 px-5 pt-10 pb-2 text-center md:px-8 md:pt-14 md:pb-4">
         <AnimatePresence mode="wait">
-          <motion.p
+          <motion.h1
             key={currentQuestion.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-xs font-normal leading-relaxed tracking-[0.2em] text-white/95 md:text-sm"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="font-serif text-lg font-medium leading-snug tracking-wider text-white/90 md:text-xl"
           >
             {currentQuestion.question_title}
-          </motion.p>
+          </motion.h1>
         </AnimatePresence>
       </div>
 
-      {/* 抉择区：灵魂对峙，上下对称 */}
-      <div className="relative flex flex-1 flex-col pt-10 min-h-0">
+      {/* 抉择区：两大磨砂卡片 + 中间分隔 */}
+      <div className="relative z-10 flex flex-1 flex-col gap-0 min-h-0 px-4 pb-2 md:px-6">
         <OptionCard
           side="A"
-          label="「 宁願 」"
+          label="宁愿"
           text={currentQuestion.optionA_text}
           isActive={selected === "A"}
           isDimmed={selected === "B"}
@@ -799,9 +801,19 @@ export function NingYuanGame() {
           showResult={showResult}
           ratio={displayRatio[0]}
         />
+        {/* 中间分隔区 */}
+        <div className="relative z-20 flex shrink-0 items-center justify-center -my-3 md:-my-4">
+          <div className="flex items-center gap-3">
+            <div className="h-px w-10 bg-gradient-to-r from-transparent to-white/10 md:w-16" />
+            <div className="glass-separator flex h-12 w-12 items-center justify-center rounded-xl md:h-14 md:w-14">
+              <SoulRadar stats={stats} className="h-6 w-6 md:h-7 md:w-7" />
+            </div>
+            <div className="h-px w-10 bg-gradient-to-l from-transparent to-white/10 md:w-16" />
+          </div>
+        </div>
         <OptionCard
           side="B"
-          label="「 或是 」"
+          label="或是"
           text={currentQuestion.optionB_text}
           isActive={selected === "B"}
           isDimmed={selected === "A"}
@@ -850,74 +862,38 @@ export function NingYuanGame() {
         )}
       </AnimatePresence>
 
-      {/* 芒星 / 灵魂雷达：居中替代 OR */}
-      <div className="absolute left-1/2 top-1/2 z-20 h-20 w-20 -translate-x-1/2 -translate-y-1/2 pointer-events-none md:h-24 md:w-24">
-        <SoulRadar stats={stats} className="h-full w-full" />
-      </div>
-
-      {/* 底部属性条 */}
-      <footer className="flex shrink-0 justify-center gap-2 overflow-x-auto border-t border-zinc-900/80 bg-zinc-950/50 px-3 py-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] scrollbar-hide md:gap-3 md:px-4">
-        {STAT_KEYS.map((name) => (
+      {/* 底部等化器 */}
+      <footer className="glass-equalizer-bar relative z-10 flex shrink-0 justify-center gap-2.5 overflow-x-auto px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] scrollbar-hide md:gap-3.5 md:px-8 md:py-4">
+        {STAT_KEYS.map((name, i) => (
           <StatBar
             key={name}
             name={name}
             value={stats[name]}
             highlight={lastChangedKeys.includes(name)}
+            colorIndex={i}
           />
         ))}
       </footer>
 
       {/* 灵魂身份标本标签 + 退出 */}
       {soulId && (
-        <span className="absolute bottom-14 left-3 z-10 font-mono text-[10px] opacity-30 md:bottom-16 md:left-4">
+        <span className="absolute bottom-14 left-4 z-10 font-mono text-[9px] text-white/20 md:bottom-16 md:left-5">
           {soulId}
         </span>
       )}
-      <div className="absolute right-3 top-3 z-10 flex items-center gap-3 md:right-4 md:top-4">
+      {/* 右上导航 */}
+      <div className="absolute right-4 top-5 z-10 flex items-center gap-2 md:right-6 md:top-6">
         {growth && user && (
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-zinc-500">Lv.{growth.level}</span>
-            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-zinc-800">
-              <div
-                className="h-full bg-white/40"
-                style={{
-                  width: `${(() => {
-                    const expAt = levelToExp(growth.level);
-                    const expNext = levelToExp(growth.level + 1);
-                    const need = expNext - expAt;
-                    const have = growth.xp - expAt;
-                    return need > 0 ? Math.min(100, (have / need) * 100) : 100;
-                  })()}%`,
-                }}
-              />
-            </div>
-            <span className="text-[10px] text-zinc-500">洞察 {growth.insight}</span>
-          </div>
+          <span className="text-[10px] text-white/40">Lv.{growth.level} · 洞察 {growth.insight}</span>
         )}
         {user ? (
           <>
-            <a href="/profile" className="text-[10px] text-zinc-500 underline hover:text-white">
-              个人主页
-            </a>
-            <a href="/chat" className="text-[10px] text-zinc-500 underline hover:text-white">
-              我的连接
-            </a>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="text-[10px] text-zinc-500 underline hover:text-white"
-            >
-              退出
-            </button>
+            <a href="/profile" className="text-[10px] text-white/50 transition hover:text-white/80">个人</a>
+            <a href="/chat" className="text-[10px] text-white/50 transition hover:text-white/80">连接</a>
+            <button type="button" onClick={handleLogout} className="text-[10px] text-white/35 transition hover:text-white/70">退出</button>
           </>
         ) : (
-          <button
-            type="button"
-            onClick={() => setShowAuthModal(true)}
-            className="text-[10px] text-zinc-500 underline hover:text-white"
-          >
-            登录
-          </button>
+          <button type="button" onClick={() => setShowAuthModal(true)} className="text-[10px] text-white/60 transition hover:text-white/80">登录</button>
         )}
       </div>
 
@@ -936,48 +912,56 @@ export function NingYuanGame() {
         )}
       </AnimatePresence>
 
-      {/* 阶段性镜像 Modal */}
+      {/* 阶段性镜像 Modal：大块玻璃 */}
       <AnimatePresence>
         {showStageModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
           >
-            <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-              阶段性镜像
-            </p>
-            <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 text-balance md:text-2xl lg:text-3xl">
-              {stageTitle}
-            </h2>
-            <p className="mt-4 max-w-sm text-center text-sm leading-relaxed text-zinc-400">
-              {stagePhrase}
-            </p>
-            {!user ? (
-              <p className="mt-6 text-center text-xs text-zinc-500">
-                登录后解锁真实灵魂伴侣
-                <button
-                  type="button"
-                  onClick={() => setShowAuthModal(true)}
-                  className="ml-2 underline text-white/70 hover:text-white"
-                >
-                  登录 | 注册
-                </button>
-              </p>
-            ) : (
-              <p className="mt-6 text-center text-xs text-zinc-500">
-                <a href="/chat" className="underline text-white/70 hover:text-white">我的连接</a>
-              </p>
-            )}
-            <motion.button
-              type="button"
-              onClick={closeStageModal}
-              className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
-              whileTap={{ scale: 0.98 }}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-2xl" aria-hidden />
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className="glass-lg relative z-10 w-full max-w-md rounded-3xl px-8 py-10 text-center md:px-12 md:py-12"
             >
-              继续试炼
-            </motion.button>
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/60">
+                阶段性镜像
+              </p>
+              <h2 className="mt-6 font-serif text-2xl font-medium tracking-wide text-white/95 text-balance md:text-3xl">
+                {stageTitle}
+              </h2>
+              <p className="mt-6 max-w-sm mx-auto text-center text-base leading-relaxed text-white/70">
+                {stagePhrase}
+              </p>
+              {!user ? (
+                <p className="mt-8 text-center text-sm text-white/50">
+                  登录后解锁真实灵魂伴侣
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="ml-2 underline text-white/80 hover:text-white"
+                  >
+                    登录 | 注册
+                  </button>
+                </p>
+              ) : (
+                <p className="mt-8 text-center text-sm text-white/50">
+                  <a href="/chat" className="underline text-white/80 hover:text-white">我的连接</a>
+                </p>
+              )}
+              <motion.button
+                type="button"
+                onClick={closeStageModal}
+                className="glass-card-main mt-10 min-h-[52px] min-w-[160px] rounded-2xl border border-white/25 px-10 py-3.5 text-sm font-medium tracking-widest text-white/95 transition hover:border-white/35 hover:bg-white/10 md:min-w-[180px]"
+                whileTap={{ scale: 0.98 }}
+              >
+                继续试炼
+              </motion.button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1000,7 +984,7 @@ export function NingYuanGame() {
       {/* 与你相似：桌面侧栏 + 移动端浮动按钮与抽屉 */}
       <div className="fixed right-0 top-0 bottom-0 z-20 hidden md:block">
         <motion.div
-          className="flex h-full flex-col border-l border-white/10 bg-black/95"
+          className="glass-panel flex h-full flex-col border-l border-white/[0.08]"
           initial={false}
           animate={{ width: similarOpen ? 200 : 48 }}
           transition={{ duration: 0.2 }}
@@ -1036,7 +1020,7 @@ export function NingYuanGame() {
                         <p className="mb-1.5 text-[10px] text-zinc-500">第 {entry.tier / 20} 层 · {entry.tier} 题</p>
                         <ul className="space-y-1.5">
                           {entry.matches.map((m) => (
-                            <li key={`${entry.tier}-${m.soul_id}`} className="rounded border border-white/15 bg-white/5 p-2">
+                            <li key={`${entry.tier}-${m.soul_id}`} className="glass rounded-lg p-2">
                               <p className="font-medium text-[10px] text-white/80">{m.display_name ?? m.soul_id}</p>
                               {m.display_name ? <p className="font-mono text-[9px] text-zinc-500">{m.soul_id}</p> : null}
                               {m.resonance > 0 && <span className="text-[9px] text-white/50">共鸣 {m.resonance}%</span>}
@@ -1059,7 +1043,7 @@ export function NingYuanGame() {
                     ))}
                   </div>
                   {similarLetterTarget && (
-                    <div className="mt-4 max-w-[180px] space-y-2 rounded border border-white/15 bg-white/5 p-2 text-[11px] text-white/80">
+                    <div className="glass-md mt-4 max-w-[180px] space-y-2 rounded-lg p-2 text-[11px] text-white/80">
                       <p className="text-[9px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
                       <p className="mt-1 text-[10px] text-zinc-300">
                         你可以选择宁愿向{" "}
@@ -1131,19 +1115,19 @@ export function NingYuanGame() {
         </motion.div>
       </div>
 
-      {/* 移动端：浮动按钮 */}
+      {/* 移动端：浮动按钮 - 玻璃丸 */}
       {!similarOpen && (
         <button
           type="button"
           onClick={() => setSimilarOpen(true)}
-          className="fixed bottom-20 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/90 text-[10px] text-zinc-400 md:hidden"
+          className="glass fixed bottom-20 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-2xl text-[11px] font-medium text-white/90 shadow-lg md:hidden"
           aria-label="与你相似"
         >
           相似
         </button>
       )}
 
-      {/* 移动端：抽屉 */}
+      {/* 移动端：抽屉 - 大块玻璃 */}
       <AnimatePresence>
         {similarOpen && (
           <motion.div
@@ -1161,8 +1145,8 @@ export function NingYuanGame() {
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "tween", duration: 0.2 }}
-            className="fixed right-0 top-0 bottom-0 z-40 w-72 border-l border-white/10 bg-black/95 p-4 md:hidden"
+            transition={{ type: "tween", duration: 0.25 }}
+            className="glass-lg fixed right-0 top-0 bottom-0 z-40 w-[min(88vw,320px)] rounded-l-3xl border-l border-white/[0.12] p-5 md:hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -1190,7 +1174,7 @@ export function NingYuanGame() {
                         <p className="mb-2 text-[10px] text-zinc-500">第 {entry.tier / 20} 层 · 完成 {entry.tier} 题</p>
                         <ul className="space-y-2">
                           {entry.matches.map((m) => (
-                            <li key={`${entry.tier}-${m.soul_id}`} className="rounded border border-white/15 bg-white/5 p-3">
+                            <li key={`${entry.tier}-${m.soul_id}`} className="glass rounded-lg p-3">
                               <p className="font-medium text-xs text-white/80">{m.display_name ?? m.soul_id}</p>
                               {m.display_name ? <p className="font-mono text-[10px] text-zinc-500">{m.soul_id}</p> : null}
                               {m.resonance > 0 && <p className="text-[10px] text-white/50">共鸣 {m.resonance}%</p>}
@@ -1213,7 +1197,7 @@ export function NingYuanGame() {
                     ))}
                   </div>
                   {similarLetterTarget && (
-                    <div className="mt-4 space-y-2 rounded border border-white/15 bg-white/5 p-3 text-[11px] text-white/80">
+                    <div className="glass-md mt-4 space-y-2 rounded-lg p-3 text-[11px] text-white/80">
                       <p className="text-[9px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
                       <p className="mt-1 text-[10px] text-zinc-300">
                         你可以选择宁愿向{" "}
@@ -1254,7 +1238,7 @@ export function NingYuanGame() {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
-                                recipient_soul_id: similarLetterTarget.soulId,
+                                target_soul_id: similarLetterTarget.soulId,
                                 tier: similarLetterTarget.tier,
                                 content: similarLetterContent.slice(0, 500),
                               }),
@@ -1321,7 +1305,7 @@ function RewardToast({ xp, points, insight }: { xp: number; points: number; insi
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ type: "spring", stiffness: 300 }}
-      className="fixed left-1/2 top-14 z-40 -translate-x-1/2 rounded border border-white/20 bg-zinc-900/95 px-4 py-2 text-center shadow-lg"
+      className="glass-lg fixed left-1/2 top-14 z-40 -translate-x-1/2 rounded-lg px-4 py-2 text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
     >
       <span className="text-xs text-white/90">+{xp} XP</span>
       <span className="mx-2 text-zinc-600">·</span>
@@ -1347,22 +1331,24 @@ function LevelUpModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
     >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-2xl" aria-hidden />
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 22 }}
-        className="flex flex-col items-center"
+        className="glass-lg relative z-10 flex flex-col items-center rounded-3xl px-10 py-12"
       >
-        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">升级</p>
-        <h2 className="mt-4 font-serif text-xl tracking-wide text-white/95 md:text-2xl lg:text-3xl">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-white/60">升级</p>
+        <h2 className="mt-6 font-serif text-3xl font-medium tracking-wide text-white/95 md:text-4xl">
           Lv.{level}
         </h2>
         {newPrivileges.length > 0 && (
-          <div className="mt-6 max-w-sm space-y-2 text-center">
-            <p className="text-xs text-zinc-500">新解锁</p>
-            <ul className="space-y-1 text-sm text-white/80">
+          <div className="mt-8 max-w-sm space-y-3 text-center">
+            <p className="text-xs text-white/50">新解锁</p>
+            <ul className="space-y-2 text-sm text-white/80">
               {newPrivileges.map((p) => (
                 <li key={p.key}>{p.name}</li>
               ))}
@@ -1372,7 +1358,7 @@ function LevelUpModal({
         <motion.button
           type="button"
           onClick={onClose}
-          className="mt-10 min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+          className="glass-card-main mt-10 min-h-[52px] min-w-[160px] rounded-2xl border border-white/25 px-10 py-3.5 text-sm font-medium tracking-widest text-white/95 transition hover:border-white/35 hover:bg-white/10"
           whileTap={{ scale: 0.98 }}
         >
           继续
@@ -1411,17 +1397,19 @@ function SoulMateLayer({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:px-6"
     >
-      <p className="font-serif text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-        第 {tier / 20} 层灵魂伴侣
-      </p>
-      {!isLoggedIn && (
-        <p className="mt-2 text-center text-xs text-zinc-500">
-          登录后解锁真实灵魂伴侣
-          {onOpenAuth && (
-            <button type="button" onClick={onOpenAuth} className="ml-2 underline text-white/70 hover:text-white">
-              登录 | 注册
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-2xl" aria-hidden />
+      <div className="glass-lg relative z-10 w-full max-w-lg rounded-3xl px-8 py-10 text-center md:px-12 md:py-12">
+        <p className="font-serif text-[10px] uppercase tracking-[0.35em] text-white/60">
+          第 {tier / 20} 层灵魂伴侣
+        </p>
+        {!isLoggedIn && (
+          <p className="mt-4 text-center text-sm text-white/50">
+            登录后解锁真实灵魂伴侣
+            {onOpenAuth && (
+              <button type="button" onClick={onOpenAuth} className="ml-2 underline text-white/80 hover:text-white">
+                登录 | 注册
             </button>
           )}
         </p>
@@ -1434,7 +1422,7 @@ function SoulMateLayer({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="flex w-28 flex-col items-center rounded border border-white/15 bg-white/5 p-4 md:w-32"
+            className="glass flex w-28 flex-col items-center rounded-2xl p-4 md:w-32"
           >
             <div className="h-16 w-16 overflow-hidden rounded opacity-80 md:h-20 md:w-20">
               <SoulRadar stats={m.stats ?? defaultStats} className="h-full w-full" />
@@ -1464,7 +1452,7 @@ function SoulMateLayer({
         ))}
       </div>
       {isLoggedIn && activeSoulId && (
-        <div className="mt-6 max-w-md space-y-2 rounded border border-white/15 bg-white/5 p-4 text-xs text-white/80">
+        <div className="glass-md mt-6 max-w-md space-y-2 rounded-2xl p-4 text-xs text-white/80">
           <p className="text-[10px] tracking-[0.25em] text-zinc-400">宁愿 · 人生笺言</p>
           <p className="mt-2 text-[11px] text-zinc-300">
             你可以选择宁愿向 <span className="font-mono text-white">{activeSoulId}</span> 发出一封人生笺言，
@@ -1474,7 +1462,7 @@ function SoulMateLayer({
             rows={3}
             value={letterContent}
             onChange={(e) => setLetterContent(e.target.value)}
-            className="mt-2 w-full rounded border border-white/20 bg-black/40 px-2 py-1.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+            className="glass mt-2 w-full rounded-xl px-2 py-1.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/20"
             placeholder="写下一句此刻最想对 TA 说的话（最多 500 字）"
           />
           {letterError ? <p className="text-[10px] text-red-400">{letterError}</p> : null}
@@ -1536,11 +1524,12 @@ function SoulMateLayer({
         <motion.button
           type="button"
           onClick={onContinue}
-          className="min-h-[48px] min-w-[140px] rounded border border-white/30 bg-white/10 px-8 py-4 text-sm uppercase tracking-widest text-white/90 transition hover:bg-white/15 md:min-w-[160px]"
+          className="glass-card-main min-h-[52px] min-w-[160px] rounded-2xl border border-white/25 px-10 py-3.5 text-sm font-medium tracking-widest text-white/95 transition hover:border-white/35 hover:bg-white/10 md:min-w-[180px]"
           whileTap={{ scale: 0.98 }}
         >
           继续试炼
         </motion.button>
+      </div>
       </div>
     </motion.div>
   );
@@ -1627,14 +1616,61 @@ function AuthModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[55] flex items-center justify-center bg-black/85 px-4"
-      onClick={onClose}
+      className="fixed inset-0 z-[55] flex items-center justify-center px-4"
     >
+      {/* 效果图：深蓝→紫蓝底 + 发光节点与连线，强模糊后呈现 */}
+      <div className="absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 from-30% via-purple-950/98 via-60% to-slate-950 to-100%" />
+        <div className="absolute inset-0 opacity-90">
+          <div className="glass-bg-network h-full w-full" />
+        </div>
+        {/* 星座/网络线稿：光点与连线 */}
+        <svg className="absolute inset-0 h-full w-full opacity-[0.35]" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="lineGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(120,130,255,0.4)" />
+              <stop offset="100%" stopColor="rgba(160,120,255,0.4)" />
+            </linearGradient>
+          </defs>
+          {/* 节点 */}
+          <circle cx="80" cy="120" r="2" fill="rgba(180,190,255,0.5)" />
+          <circle cx="320" cy="180" r="1.5" fill="rgba(200,180,255,0.5)" />
+          <circle cx="120" cy="280" r="2" fill="rgba(160,170,255,0.5)" />
+          <circle cx="280" cy="320" r="1.5" fill="rgba(180,160,255,0.5)" />
+          <circle cx="200" cy="220" r="2.5" fill="rgba(200,190,255,0.6)" />
+          <circle cx="60" cy="400" r="1.5" fill="rgba(170,180,255,0.45)" />
+          <circle cx="340" cy="450" r="2" fill="rgba(190,170,255,0.5)" />
+          <circle cx="200" cy="380" r="1.5" fill="rgba(180,190,255,0.5)" />
+          <circle cx="100" cy="520" r="2" fill="rgba(160,170,255,0.45)" />
+          <circle cx="300" cy="560" r="1.5" fill="rgba(190,180,255,0.5)" />
+          {/* 连线 */}
+          <line x1="80" y1="120" x2="200" y2="220" stroke="url(#lineGlow)" strokeWidth="0.6" />
+          <line x1="200" y1="220" x2="320" y2="180" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="200" y1="220" x2="120" y2="280" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="120" y1="280" x2="280" y2="320" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="280" y1="320" x2="200" y2="380" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="60" y1="400" x2="200" y2="380" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="200" y1="380" x2="340" y2="450" stroke="url(#lineGlow)" strokeWidth="0.5" />
+          <line x1="100" y1="520" x2="200" y2="380" stroke="url(#lineGlow)" strokeWidth="0.4" />
+          <line x1="300" y1="560" x2="340" y2="450" stroke="url(#lineGlow)" strokeWidth="0.4" />
+        </svg>
+      </div>
+      <div
+        className="absolute inset-0 bg-black/20 glass-overlay"
+        onClick={onClose}
+        aria-hidden
+      />
+      {/* 弹窗：高透明 + 强模糊 + 内高光（效果图） */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
-        className="w-full max-w-sm rounded border border-white/20 bg-zinc-900/95 p-6 shadow-xl"
+        className="relative z-10 w-full max-w-sm rounded-3xl border border-white/[0.12] p-6 shadow-[0_2px_0_0_rgba(255,255,255,0.12)_inset,0_-1px_0_0_rgba(0,0,0,0.2)_inset,0_24px_80px_rgba(0,0,0,0.35)]"
+        style={{
+          background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 100%)",
+          backdropFilter: "blur(80px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(80px) saturate(1.4)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {justRegistered ? (
@@ -1663,7 +1699,7 @@ function AuthModal({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="代号/邮箱"
-            className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+            className="glass w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/25"
             required
           />
           <input
@@ -1671,7 +1707,7 @@ function AuthModal({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="密码"
-            className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+            className="glass w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/25"
             required
             minLength={6}
           />
@@ -1681,22 +1717,22 @@ function AuthModal({
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="显示名（可选）"
-              className="w-full rounded border border-white/20 bg-black/50 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500"
+              className="glass w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/25"
             />
           )}
           {error && <p className="text-xs text-red-400">{error}</p>}
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => { setMode(mode === "register" ? "login" : "register"); setError(""); }}
-              className="rounded border border-white/20 px-4 py-2 text-sm text-white/70 hover:bg-white/5"
+              className="glass rounded-xl border border-white/[0.12] px-4 py-2.5 text-sm text-white/80 hover:bg-white/[0.06]"
             >
               {mode === "register" ? "去登录" : "去注册"}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded border border-white/30 bg-white/10 px-4 py-2 text-sm text-white/90 hover:bg-white/15 disabled:opacity-50"
+              className="glass-card-main flex-1 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-medium text-white/95 shadow-[0_2px_0_0_rgba(255,255,255,0.1)_inset] hover:bg-white/[0.08] disabled:opacity-50"
             >
               {mode === "register" ? "建立连接" : "登录"}
             </button>
@@ -1716,7 +1752,7 @@ function NoEditHint({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-[55] flex flex-col items-center justify-center bg-black/80 px-6"
+      className="fixed inset-0 z-[55] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm px-6"
       onClick={onClose}
     >
       <motion.div
@@ -1724,7 +1760,7 @@ function NoEditHint({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.25 }}
-        className="max-w-sm rounded border border-white/20 bg-zinc-900/90 px-6 py-5 text-center shadow-xl"
+        className="glass-lg max-w-sm rounded-2xl px-6 py-5 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-sm leading-relaxed text-zinc-300">
@@ -1882,51 +1918,40 @@ function OptionCard({
   showResult,
   ratio,
 }: OptionCardProps) {
-  const [hovered, setHovered] = useState(false);
   const contentOpacity = isDimmed ? 0.25 : 1;
-  const contentScale = hovered && !isDimmed ? 1.02 : 1;
-  const textColor = "text-white";
-
-  const boxShadow =
-    isDimmed
-      ? "0 0 0 transparent"
-      : isActive
-        ? "0 0 28px rgba(255,255,255,0.06)"
-        : hovered
-          ? "0 0 20px rgba(255,255,255,0.03)"
-          : "0 0 0 transparent";
 
   return (
     <motion.div
       onClick={onSelect}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      className={`relative flex min-h-[120px] flex-1 cursor-pointer items-center justify-center px-4 touch-manipulation md:px-6 ${isActive ? "border border-white/20" : "border border-transparent"}`}
-      animate={{ boxShadow }}
-      transition={{ duration: 0.25 }}
-      whileTap={{ scale: 0.98 }}
+      className="glass-card-main relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-2xl px-6 py-8 touch-manipulation md:rounded-3xl md:px-10 md:py-10"
+      animate={{
+        opacity: isDimmed ? 0.4 : 1,
+        scale: isActive ? 1.01 : 1,
+        borderColor: isActive ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)",
+      }}
+      transition={{ duration: 0.2 }}
+      whileHover={isDimmed ? {} : { scale: 1.005, borderColor: "rgba(255,255,255,0.12)" }}
+      whileTap={{ scale: 0.995 }}
     >
       <motion.div
-        className="flex max-w-[90vw] flex-col items-center gap-2 text-center md:max-w-lg"
+        className="flex flex-col items-center gap-4 text-center"
         animate={{ opacity: contentOpacity }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.2 }}
       >
-        <span className="mb-0.5 text-[10px] tracking-[0.4em] text-white/80">
+        <span className="text-sm font-semibold tracking-[0.3em] text-white/90 md:text-base">
           {label}
         </span>
-        <motion.h2
-          className={`font-extralight leading-relaxed tracking-widest text-lg ${textColor} md:text-xl`}
-          animate={{ scale: contentScale }}
-          transition={{ duration: 0.25 }}
-        >
+        <p className="max-w-md font-serif text-sm font-normal leading-relaxed text-white/70 md:text-base md:leading-loose">
           {text}
-        </motion.h2>
+        </p>
       </motion.div>
+      {/* 底部渐变线（效果图中卡片底部可见的水平亮线） */}
+      <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent md:left-6 md:right-6" />
       {showResult && (
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute bottom-2 right-3 font-serif text-xs italic text-white/40 md:bottom-3 md:right-5 md:text-sm"
+          className="absolute bottom-3 right-5 font-mono text-xs text-white/40 md:bottom-4 md:right-7"
         >
           {ratio}%
         </motion.span>
@@ -1939,27 +1964,27 @@ function StatBar({
   name,
   value,
   highlight,
+  colorIndex,
 }: {
   name: string;
   value: number;
   highlight: boolean;
+  colorIndex?: number;
 }) {
+  const isGreen = (colorIndex ?? 0) % 2 === 0;
+  const glowClass = isGreen ? "stat-bar-glow-green" : "stat-bar-glow-blue";
   return (
     <div className="flex shrink-0 flex-col items-center gap-1">
-      <div className="flex h-5 w-2.5 flex-col justify-end overflow-hidden rounded-sm bg-zinc-900 md:w-3">
+      <div className="stat-bar-track flex h-9 w-2.5 flex-col justify-end overflow-hidden rounded-full md:h-12 md:w-3">
         <motion.div
-          className="w-full rounded-sm bg-white/35"
+          className={`w-full rounded-full ${glowClass}`}
           initial={false}
           animate={{ height: `${value}%` }}
           transition={{ type: "spring", stiffness: 200, damping: 25 }}
-          style={{ minHeight: value > 0 ? 2 : 0 }}
+          style={{ minHeight: value > 0 ? 4 : 0 }}
         />
-        </div>
-      <span
-        className={`text-[7px] tracking-wider transition-colors md:text-[8px] ${
-          "text-white"
-        }`}
-      >
+      </div>
+      <span className="text-[7px] tracking-wider text-white/40 md:text-[8px]">
         {name}
       </span>
     </div>
