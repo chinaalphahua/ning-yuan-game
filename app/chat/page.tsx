@@ -659,11 +659,16 @@ export default function ChatPage() {
           )}
         </AnimatePresence>
 
-        <main className="relative flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <main className="relative flex-1 min-w-0 overflow-hidden" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {selected ? (
             <>
-              <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
-                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{(selected.other_display_name || selected.other_soul_id)} ▾</button>
+              <div className="shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center justify-between">
+                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation sm:cursor-default">
+                  <span>{selected.other_display_name || selected.other_soul_id}</span>
+                  {selected.other_display_name ? <span className="ml-1.5 font-mono text-[10px] text-white/40">{selected.other_soul_id}</span> : null}
+                  <span className="sm:hidden ml-1">▾</span>
+                </button>
+                <span className={`text-[10px] ${selected.status === "accepted" ? "text-green-400/60" : "text-amber-400/60"}`}>{selected.status === "accepted" ? "已连接" : "待接受"}</span>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
@@ -692,8 +697,11 @@ export default function ChatPage() {
             </>
           ) : selectedGroup ? (
             <>
-              <div className="sm:hidden shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
-                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation">{selectedGroup.name} ▾</button>
+              <div className="shrink-0 border-b border-white/[0.08] px-4 py-2 min-h-[44px] flex items-center">
+                <button type="button" onClick={() => setDrawerOpen(true)} className="text-sm font-medium text-white/90 touch-manipulation sm:cursor-default">
+                  <span>{selectedGroup.name}</span>
+                  <span className="sm:hidden ml-1">▾</span>
+                </button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-hidden p-4 space-y-4 overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
                 <AnimatePresence>
