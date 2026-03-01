@@ -1135,7 +1135,7 @@ export function NingYuanGame() {
         </button>
       )}
 
-      {/* 移动端：全屏抽屉 - 居中显示，避免右侧贴边 */}
+      {/* 移动端：居中弹层 + 可上下滑动 */}
       <AnimatePresence>
         {similarOpen && (
           <motion.div
@@ -1143,27 +1143,24 @@ export function NingYuanGame() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 bg-black/60 md:hidden"
-            style={{ paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}
+            className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+            style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}
             onClick={() => setSimilarOpen(false)}
-          />
-        )}
-        {similarOpen && (
-          <motion.div
-            key="similar-drawer"
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "tween", duration: 0.25 }}
-            className="glass-lg fixed top-0 bottom-0 z-40 flex flex-col p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:hidden w-full max-w-[100vw]"
-            style={{ left: "env(safe-area-inset-left)", right: "env(safe-area-inset-right)", width: "calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right))" }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div className="shrink-0 flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs uppercase tracking-wider text-zinc-500">与你相似</span>
-              <button type="button" onClick={() => setSimilarOpen(false)} className="text-zinc-500 hover:text-white">关闭</button>
-            </div>
-            <div className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
+            <motion.div
+              key="similar-drawer"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "tween", duration: 0.2 }}
+              className="glass-lg flex max-h-full w-full max-w-[400px] flex-col rounded-2xl border border-white/[0.12] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shrink-0 flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <span className="text-xs uppercase tracking-wider text-zinc-500">与你相似</span>
+                <button type="button" onClick={() => setSimilarOpen(false)} className="text-zinc-500 hover:text-white touch-manipulation">关闭</button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3" style={{ WebkitOverflowScrolling: "touch" }}>
               {!user ? (
                 <p className="text-center text-xs text-zinc-500">
                   登录后解锁与你相似的人
@@ -1275,7 +1272,8 @@ export function NingYuanGame() {
                   )}
                 </>
               )}
-            </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
