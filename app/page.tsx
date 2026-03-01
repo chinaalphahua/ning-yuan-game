@@ -1135,7 +1135,7 @@ export function NingYuanGame() {
         </button>
       )}
 
-      {/* 移动端：抽屉 - 大块玻璃 */}
+      {/* 移动端：全屏抽屉 - 居中显示，避免右侧贴边 */}
       <AnimatePresence>
         {similarOpen && (
           <motion.div
@@ -1144,17 +1144,19 @@ export function NingYuanGame() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-30 bg-black/60 md:hidden"
+            style={{ paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}
             onClick={() => setSimilarOpen(false)}
           />
         )}
         {similarOpen && (
           <motion.div
             key="similar-drawer"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "tween", duration: 0.25 }}
-            className="glass-lg fixed right-0 top-0 bottom-0 z-40 flex w-[min(88vw,320px)] flex-col rounded-l-3xl border-l border-white/[0.12] p-5 pt-[env(safe-area-inset-top)] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:hidden"
+            className="glass-lg fixed top-0 bottom-0 z-40 flex flex-col p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:hidden w-full max-w-[100vw]"
+            style={{ left: "env(safe-area-inset-left)", right: "env(safe-area-inset-right)", width: "calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right))" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="shrink-0 flex items-center justify-between border-b border-white/10 pb-3">
