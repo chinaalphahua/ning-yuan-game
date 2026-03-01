@@ -197,6 +197,8 @@ export function NingYuanGame() {
   const prevTopAttrRef = useRef<string | null>(null);
   const impactHistoryRef = useRef<Record<string, number>[]>([]);
   const resonanceLastShownAtRef = useRef<number>(-999);
+  // 每次发出新请求时递增，用于废弃慢网络下旧题目的 API 回调，防止竞态污染下一题的百分比
+  const ratioRequestIdRef = useRef<number>(0);
   statsRef.current = stats;
   const searchParams = useSearchParams();
 
@@ -444,6 +446,7 @@ export function NingYuanGame() {
         setTimeout(() => setResonanceWhisper(null), 10000);
       }
       if (user?.id) {
+        const reqId = ++ratioRequestIdRef.current;
         fetch("/api/play/choice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -454,6 +457,7 @@ export function NingYuanGame() {
         })
           .then((r) => r.json())
           .then((d) => {
+            if (ratioRequestIdRef.current !== reqId) return;
             if (
               typeof d?.a_percent === "number" &&
               typeof d?.b_percent === "number"
@@ -468,6 +472,7 @@ export function NingYuanGame() {
             setIsRatioReady(true);
           })
           .catch(() => {
+            if (ratioRequestIdRef.current !== reqId) return;
             setDisplayRatio([50, 50]);
             setIsRatioReady(true);
           });
@@ -555,6 +560,7 @@ export function NingYuanGame() {
           setStagePhrase(meta.phrase);
           setShowStageModal(true);
         } else {
+          ratioRequestIdRef.current += 1;
           setCurrentIndex(nextIndex);
           setSelected(null);
           setShowResult(false);
@@ -580,6 +586,7 @@ export function NingYuanGame() {
   );
 
   const closeStageModal = useCallback(() => {
+    ratioRequestIdRef.current += 1;
     setShowStageModal(false);
     setCurrentIndex((prev) => prev + 1);
     setSelected(null);
@@ -600,6 +607,7 @@ export function NingYuanGame() {
       if (next >= total) {
         setShowFinalReport(true);
       } else {
+        ratioRequestIdRef.current += 1;
         setCurrentIndex(next);
         setSelected(null);
         setShowResult(false);
@@ -628,6 +636,7 @@ export function NingYuanGame() {
     setSelected(null);
     setShowResult(false);
     setLastChangedKeys([]);
+    ratioRequestIdRef.current += 1;
     setChoiceTotal(null);
     setDisplayRatio([50, 50]);
     setIsRatioReady(false);
