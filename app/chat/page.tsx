@@ -747,26 +747,30 @@ export default function ChatPage() {
 
       {createGroupOpen && typeof document !== "undefined" && createPortal(
         <AnimatePresence>
-          <motion.div
-            key="create-group-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-xl"
-            onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)}
-            aria-hidden
-          />
-          <motion.div
-            key="create-group-modal"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-group-title"
-            className="glass-lg z-40 w-[90%] max-w-[360px] max-h-[85vh] overflow-y-auto rounded-2xl p-4"
-            onClick={(e) => e.stopPropagation()}
+          <div
+            key="create-group-overlay"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)}
+              aria-hidden
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-group-title"
+              className="glass-lg relative z-10 w-full max-w-[360px] max-h-[85vh] min-h-[200px] flex flex-col rounded-2xl overflow-hidden"
+              style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-4 flex flex-col min-h-0 flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
             <h3 id="create-group-title" className="text-sm font-medium text-white mb-3">创建群聊</h3>
             <input
               type="text"
@@ -791,11 +795,13 @@ export default function ChatPage() {
               )}
             </div>
             {createGroupError ? <p className="mb-3 text-xs text-red-400">{createGroupError}</p> : null}
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-end shrink-0">
               <button type="button" onClick={() => !createGroupSubmitting && (setCreateGroupOpen(false), setCreateGroupError(""))} className="px-4 py-2 text-xs text-white/50 hover:text-white touch-manipulation">取消</button>
               <button type="button" onClick={createGroup} disabled={createGroupSubmitting} className="rounded-lg border border-white/30 px-4 py-2 text-xs text-white/90 bg-white/10 hover:bg-white/15 disabled:opacity-50 touch-manipulation">{createGroupSubmitting ? "创建中…" : "创建"}</button>
             </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </AnimatePresence>,
         document.body
       )}
