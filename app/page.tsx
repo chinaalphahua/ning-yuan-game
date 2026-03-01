@@ -153,6 +153,7 @@ export function NingYuanGame() {
   const [stats, setStats] = useState<Record<string, number>>({ ...INIT_STATS });
   const [lastChangedKeys, setLastChangedKeys] = useState<string[]>([]);
   const [displayRatio, setDisplayRatio] = useState<[number, number]>([50, 50]);
+  const [choiceTotal, setChoiceTotal] = useState<number | null>(null);
   const [stageStartStats, setStageStartStats] = useState<Record<string, number>>({ ...INIT_STATS });
   const [showStageModal, setShowStageModal] = useState(false);
   const [stageTitle, setStageTitle] = useState("");
@@ -459,6 +460,9 @@ export function NingYuanGame() {
               typeof d?.b_percent === "number"
             ) {
               setDisplayRatio([d.a_percent, d.b_percent]);
+              if (typeof d?.total === "number") {
+                setChoiceTotal(d.total);
+              }
             }
           })
           .catch(() => {});
@@ -550,6 +554,7 @@ export function NingYuanGame() {
           setSelected(null);
           setShowResult(false);
           setLastChangedKeys([]);
+          setChoiceTotal(null);
         }
       }, 2500);
     },
@@ -573,6 +578,7 @@ export function NingYuanGame() {
     setSelected(null);
     setShowResult(false);
     setLastChangedKeys([]);
+    setChoiceTotal(null);
     setStageStartStats(() => ({ ...statsRef.current }));
   }, []);
 
@@ -589,6 +595,7 @@ export function NingYuanGame() {
         setSelected(null);
         setShowResult(false);
         setLastChangedKeys([]);
+        setChoiceTotal(null);
       }
     }
   }, [pendingSoulMateNextIndex, total, fetchGrowth]);
@@ -610,6 +617,7 @@ export function NingYuanGame() {
     setSelected(null);
     setShowResult(false);
     setLastChangedKeys([]);
+    setChoiceTotal(null);
     setLocalXp(0);
     setLocalInsight(0);
     setRewardToast(null);
@@ -825,6 +833,7 @@ export function NingYuanGame() {
           onSelect={() => handleSelect("A")}
           showResult={showResult}
           ratio={displayRatio[0]}
+          choiceTotal={choiceTotal}
         />
         {/* 中间分隔区 */}
         <div className="relative z-20 flex shrink-0 items-center justify-center -my-3 md:-my-4">
@@ -845,6 +854,7 @@ export function NingYuanGame() {
           onSelect={() => handleSelect("B")}
           showResult={showResult}
           ratio={displayRatio[1]}
+          choiceTotal={choiceTotal}
         />
       </div>
 
@@ -1937,6 +1947,7 @@ type OptionCardProps = {
   onSelect: () => void;
   showResult: boolean;
   ratio: number;
+  choiceTotal?: number | null;
 };
 
 function OptionCard({
@@ -1948,6 +1959,7 @@ function OptionCard({
   onSelect,
   showResult,
   ratio,
+  choiceTotal,
 }: OptionCardProps) {
   const contentOpacity = isDimmed ? 0.25 : 1;
 
@@ -1984,7 +1996,7 @@ function OptionCard({
           animate={{ opacity: 1 }}
           className="absolute bottom-3 right-5 font-mono text-xs text-white/40 md:bottom-4 md:right-7"
         >
-          {ratio}%
+          {ratio}%{choiceTotal != null ? <span className="ml-1 text-white/20">/{choiceTotal}人</span> : null}
         </motion.span>
       )}
     </motion.div>

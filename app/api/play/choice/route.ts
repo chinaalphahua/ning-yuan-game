@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
 
-    await admin.from("question_choices").upsert(
+    const { error: upsertErr } = await admin.from("question_choices").upsert(
       {
         user_id: user.id,
         question_id: questionId,
@@ -35,6 +35,9 @@ export async function POST(request: Request) {
       },
       { onConflict: "user_id,question_id" }
     );
+    if (upsertErr) {
+      console.error("[play/choice] upsert error:", upsertErr.message);
+    }
 
     const { data: rows } = await admin
       .from("question_choices")
@@ -54,6 +57,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       a_percent: aPercent,
       b_percent: bPercent,
+      total,
     });
   } catch (e) {
     console.error("[play/choice]", e);
