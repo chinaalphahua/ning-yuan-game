@@ -154,6 +154,7 @@ export function NingYuanGame() {
   const [lastChangedKeys, setLastChangedKeys] = useState<string[]>([]);
   const [displayRatio, setDisplayRatio] = useState<[number, number]>([50, 50]);
   const [choiceTotal, setChoiceTotal] = useState<number | null>(null);
+  const [isRatioReady, setIsRatioReady] = useState(false);
   const [stageStartStats, setStageStartStats] = useState<Record<string, number>>({ ...INIT_STATS });
   const [showStageModal, setShowStageModal] = useState(false);
   const [stageTitle, setStageTitle] = useState("");
@@ -442,8 +443,6 @@ export function NingYuanGame() {
         });
         setTimeout(() => setResonanceWhisper(null), 10000);
       }
-      setDisplayRatio(pickRatio());
-
       if (user?.id) {
         fetch("/api/play/choice", {
           method: "POST",
@@ -463,9 +462,15 @@ export function NingYuanGame() {
               if (typeof d?.total === "number") {
                 setChoiceTotal(d.total);
               }
+            } else {
+              setDisplayRatio([50, 50]);
             }
+            setIsRatioReady(true);
           })
-          .catch(() => {});
+          .catch(() => {
+            setDisplayRatio([50, 50]);
+            setIsRatioReady(true);
+          });
       }
 
       setRewardToast({ xp: REWARD_XP, points: REWARD_POINTS, insight: REWARD_INSIGHT });
@@ -555,6 +560,8 @@ export function NingYuanGame() {
           setShowResult(false);
           setLastChangedKeys([]);
           setChoiceTotal(null);
+          setDisplayRatio([50, 50]);
+          setIsRatioReady(false);
         }
       }, 2500);
     },
@@ -579,6 +586,8 @@ export function NingYuanGame() {
     setShowResult(false);
     setLastChangedKeys([]);
     setChoiceTotal(null);
+    setDisplayRatio([50, 50]);
+    setIsRatioReady(false);
     setStageStartStats(() => ({ ...statsRef.current }));
   }, []);
 
@@ -596,6 +605,8 @@ export function NingYuanGame() {
         setShowResult(false);
         setLastChangedKeys([]);
         setChoiceTotal(null);
+        setDisplayRatio([50, 50]);
+        setIsRatioReady(false);
       }
     }
   }, [pendingSoulMateNextIndex, total, fetchGrowth]);
@@ -618,6 +629,8 @@ export function NingYuanGame() {
     setShowResult(false);
     setLastChangedKeys([]);
     setChoiceTotal(null);
+    setDisplayRatio([50, 50]);
+    setIsRatioReady(false);
     setLocalXp(0);
     setLocalInsight(0);
     setRewardToast(null);
@@ -832,6 +845,7 @@ export function NingYuanGame() {
           isDimmed={selected === "B"}
           onSelect={() => handleSelect("A")}
           showResult={showResult}
+          ratioReady={!!user?.id && isRatioReady}
           ratio={displayRatio[0]}
           choiceTotal={choiceTotal}
         />
@@ -853,6 +867,7 @@ export function NingYuanGame() {
           isDimmed={selected === "A"}
           onSelect={() => handleSelect("B")}
           showResult={showResult}
+          ratioReady={!!user?.id && isRatioReady}
           ratio={displayRatio[1]}
           choiceTotal={choiceTotal}
         />
@@ -1946,6 +1961,7 @@ type OptionCardProps = {
   isDimmed: boolean;
   onSelect: () => void;
   showResult: boolean;
+  ratioReady: boolean;
   ratio: number;
   choiceTotal?: number | null;
 };
@@ -1958,6 +1974,7 @@ function OptionCard({
   isDimmed,
   onSelect,
   showResult,
+  ratioReady,
   ratio,
   choiceTotal,
 }: OptionCardProps) {
@@ -1990,7 +2007,7 @@ function OptionCard({
       </motion.div>
       {/* 底部渐变线（效果图中卡片底部可见的水平亮线） */}
       <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent md:left-6 md:right-6" />
-      {showResult && (
+      {showResult && ratioReady && (
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
