@@ -18,7 +18,7 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
           成长进度
         </Link>
       </header>
-      <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-10 md:px-6 md:pt-14">
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-10 md:px-6 md:pt-14" style={{ WebkitOverflowScrolling: "touch" }}>
         {children}
       </main>
     </div>

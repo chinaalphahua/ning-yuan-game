@@ -408,7 +408,7 @@ export default function ChatPage() {
       ) : letters.length === 0 ? (
         <p className="text-[10px] text-zinc-500">暂无笺言</p>
       ) : (
-        <ul className="space-y-2 max-h-56 overflow-y-auto pr-1">
+        <ul className="space-y-2 max-h-56 overflow-y-auto pr-1 overscroll-contain min-h-0" style={{ WebkitOverflowScrolling: "touch" }}>
           {letters.map((l) => (
             <li key={l.id} className="glass rounded-lg p-2 text-[11px] text-zinc-100">
               <div className="flex items-center justify-between">
@@ -635,7 +635,7 @@ export default function ChatPage() {
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <aside className="glass-panel hidden sm:flex w-52 shrink-0 flex-col border-r border-white/[0.06] overflow-y-auto overflow-x-hidden min-h-0">
+        <aside className="glass-panel hidden sm:flex w-52 shrink-0 flex-col border-r border-white/[0.06] overflow-y-auto overflow-x-hidden min-h-0 overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
           <SoulLettersSection />
           <AddFriendSection />
           <ChatModeTabs />
@@ -645,16 +645,19 @@ export default function ChatPage() {
         <AnimatePresence>
           {drawerOpen && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 top-[52px] z-10 bg-[#08080f]/80 sm:hidden" onClick={() => setDrawerOpen(false)} aria-hidden />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-10 bg-[#08080f]/80 sm:hidden" style={{ top: "calc(52px + env(safe-area-inset-top))" }} onClick={() => setDrawerOpen(false)} aria-hidden />
               <motion.aside
                 initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.2 }}
-                className="fixed right-0 top-[52px] bottom-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] overflow-y-auto bg-[#08080f] sm:hidden flex flex-col"
+                className="fixed right-0 z-20 w-[85%] max-w-[320px] border-l border-white/[0.08] bg-[#08080f] sm:hidden flex flex-col pb-[env(safe-area-inset-bottom)]"
+                style={{ top: "calc(52px + env(safe-area-inset-top))", bottom: 0 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <SoulLettersSection />
-                <AddFriendSection />
-                <ChatModeTabs />
-                {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col" style={{ WebkitOverflowScrolling: "touch" }}>
+                  <SoulLettersSection />
+                  <AddFriendSection />
+                  <ChatModeTabs />
+                  {chatMode === "dm" ? <ConversationList compact /> : <GroupList />}
+                </div>
               </motion.aside>
             </>
           )}
@@ -749,7 +752,7 @@ export default function ChatPage() {
         <AnimatePresence>
           <div
             key="create-group-overlay"
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -770,7 +773,7 @@ export default function ChatPage() {
               style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-4 flex flex-col min-h-0 flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+              <div className="p-4 flex flex-col min-h-0 flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
             <h3 id="create-group-title" className="text-sm font-medium text-white mb-3">创建群聊</h3>
             <input
               type="text"
@@ -782,7 +785,7 @@ export default function ChatPage() {
               autoFocus
             />
             <p className="text-[10px] text-white/50 mb-2">选择已连接的好友加入群聊（可选）</p>
-            <div className="max-h-[200px] overflow-y-auto space-y-1 mb-4">
+            <div className="max-h-[200px] overflow-y-auto space-y-1 mb-4 overscroll-contain min-h-0" style={{ WebkitOverflowScrolling: "touch" }}>
               {conversations.filter((c) => c.status === "accepted").length === 0 ? (
                 <p className="text-xs text-white/50 py-2">暂无已连接好友</p>
               ) : (

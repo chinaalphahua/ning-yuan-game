@@ -141,17 +141,18 @@ export default function CosmeticsBlock() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
             onClick={() => setModalOpen(false)}
           >
             <motion.div
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="glass-lg w-full max-w-sm rounded-2xl p-5"
+              className="glass-lg w-full max-w-sm max-h-[85vh] overflow-y-auto rounded-2xl p-5 overscroll-contain"
+              style={{ WebkitOverflowScrolling: "touch" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between shrink-0">
                 <span className="text-sm font-medium text-white/90">我的装扮</span>
                 <button
                   type="button"
@@ -161,7 +162,7 @@ export default function CosmeticsBlock() {
                   ×
                 </button>
               </div>
-              <div className="mb-3 flex gap-2">
+              <div className="mb-3 flex gap-2 shrink-0">
                 {(["hair", "face", "accessory"] as const).map((s) => (
                   <button
                     key={s}
@@ -177,7 +178,7 @@ export default function CosmeticsBlock() {
                   </button>
                 ))}
               </div>
-              <div className="max-h-64 overflow-y-auto space-y-2">
+              <div className="max-h-64 overflow-y-auto space-y-2 overscroll-contain min-h-0" style={{ WebkitOverflowScrolling: "touch" }}>
                 {activeSlot === "accessory" && (
                   <button
                     type="button"

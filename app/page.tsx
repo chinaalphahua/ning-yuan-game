@@ -739,38 +739,42 @@ export function NingYuanGame() {
 
       <AnimatePresence>
         {droppedCosmetic && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="glass-lg fixed bottom-24 left-1/2 z-40 -translate-x-1/2 max-w-[90vw] rounded-2xl px-4 py-3 text-center"
-          >
-            <p className="text-xs font-medium text-white/90">获得装扮</p>
-            <p className="mt-1 text-sm text-white">{droppedCosmetic.name}</p>
-            <p className="mt-0.5 text-[10px] text-zinc-500">
-              {droppedCosmetic.rarity === "common" && "普通"}
-              {droppedCosmetic.rarity === "rare" && "精良"}
-              {droppedCosmetic.rarity === "epic" && "史诗"}
-              {droppedCosmetic.rarity === "legendary" && "传说"}
-            </p>
-          </motion.div>
+          <div className="fixed inset-0 pointer-events-none flex items-end justify-center z-40 pb-24">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="glass-lg pointer-events-auto max-w-[90vw] rounded-2xl px-4 py-3 text-center"
+            >
+              <p className="text-xs font-medium text-white/90">获得装扮</p>
+              <p className="mt-1 text-sm text-white">{droppedCosmetic.name}</p>
+              <p className="mt-0.5 text-[10px] text-zinc-500">
+                {droppedCosmetic.rarity === "common" && "普通"}
+                {droppedCosmetic.rarity === "rare" && "精良"}
+                {droppedCosmetic.rarity === "epic" && "史诗"}
+                {droppedCosmetic.rarity === "legendary" && "传说"}
+              </p>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* 灵魂匹配说明 Toast：从个人主页/成长进度点击「查看灵魂匹配」跳转时展示 */}
       <AnimatePresence>
         {showSoulMatchHint && (
-          <motion.div
-            key="soul-match-hint"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="glass-lg fixed left-1/2 top-14 z-40 -translate-x-1/2 max-w-[90vw] rounded-2xl px-4 py-3 text-center text-xs text-white/90"
-          >
-            在完成第 20/40/60/80/100 题时会看到灵魂匹配 · 继续答题即可
-          </motion.div>
+          <div className="fixed inset-0 pointer-events-none flex items-start justify-center z-40 pt-14">
+            <motion.div
+              key="soul-match-hint"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="glass-lg pointer-events-auto max-w-[90vw] rounded-2xl px-4 py-3 text-center text-xs text-white/90"
+            >
+              在完成第 20/40/60/80/100 题时会看到灵魂匹配 · 继续答题即可
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -826,39 +830,43 @@ export function NingYuanGame() {
       {/* 灵魂感应：stats 更新后按条件浮现 */}
       <AnimatePresence>
         {resonanceWhisper && (
-          <motion.p
-            key={resonanceWhisper.text + resonanceWhisper.position}
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: [0, 0.75, 0],
-              transition: { duration: 10 },
-            }}
-            exit={{ opacity: 0 }}
-            className={`absolute bottom-20 left-1/2 z-40 w-full max-w-xl -translate-x-1/2 px-4 text-center text-base italic text-white pointer-events-none md:bottom-24 md:px-6 ${
-              resonanceWhisper.position === "topLeft"
-                ? "md:text-left md:pl-12"
-                : resonanceWhisper.position === "topRight"
-                  ? "md:text-right md:pr-12"
-                  : ""
-            }`}
-          >
-            {resonanceWhisper.text}
-          </motion.p>
+          <div className="fixed inset-0 pointer-events-none flex items-end justify-center z-40 pb-20 md:pb-24">
+            <motion.p
+              key={resonanceWhisper.text + resonanceWhisper.position}
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0, 0.75, 0],
+                transition: { duration: 10 },
+              }}
+              exit={{ opacity: 0 }}
+              className={`w-full max-w-xl px-4 text-center text-base italic text-white md:px-6 ${
+                resonanceWhisper.position === "topLeft"
+                  ? "md:text-left md:pl-12"
+                  : resonanceWhisper.position === "topRight"
+                    ? "md:text-right md:pr-12"
+                    : ""
+              }`}
+            >
+              {resonanceWhisper.text}
+            </motion.p>
+          </div>
         )}
       </AnimatePresence>
 
       {/* 命运的低语：未选择时浮现 */}
       <AnimatePresence>
         {selected === null && whisperText && (
-          <motion.p
-            key={whisperText}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.12 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-20 left-4 right-4 z-5 w-full max-w-md px-4 text-center text-sm italic text-white pointer-events-none md:bottom-24 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-6"
-          >
-            {whisperText}
-          </motion.p>
+          <div className="fixed inset-0 pointer-events-none flex items-end justify-center z-5 pb-20 md:pb-24 px-4 md:px-6">
+            <motion.p
+              key={whisperText}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.12 }}
+              exit={{ opacity: 0 }}
+              className="w-full max-w-md text-center text-sm italic text-white"
+            >
+              {whisperText}
+            </motion.p>
+          </div>
         )}
       </AnimatePresence>
 
@@ -997,7 +1005,7 @@ export function NingYuanGame() {
             {similarOpen ? "收起" : "相似"}
           </button>
           {similarOpen && (
-            <div className="flex flex-1 flex-col overflow-y-auto p-3">
+            <div className="flex flex-1 flex-col min-h-0 overflow-y-auto overscroll-contain p-3" style={{ WebkitOverflowScrolling: "touch" }}>
               {!user ? (
                 <p className="text-center text-xs text-zinc-500">
                   登录后解锁与你相似的人
@@ -1146,14 +1154,14 @@ export function NingYuanGame() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.25 }}
-            className="glass-lg fixed right-0 top-0 bottom-0 z-40 w-[min(88vw,320px)] rounded-l-3xl border-l border-white/[0.12] p-5 md:hidden"
+            className="glass-lg fixed right-0 top-0 bottom-0 z-40 flex w-[min(88vw,320px)] flex-col rounded-l-3xl border-l border-white/[0.12] p-5 pt-[env(safe-area-inset-top)] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="shrink-0 flex items-center justify-between border-b border-white/10 pb-3">
               <span className="text-xs uppercase tracking-wider text-zinc-500">与你相似</span>
               <button type="button" onClick={() => setSimilarOpen(false)} className="text-zinc-500 hover:text-white">关闭</button>
             </div>
-            <div className="mt-3">
+            <div className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
               {!user ? (
                 <p className="text-center text-xs text-zinc-500">
                   登录后解锁与你相似的人
@@ -1300,19 +1308,21 @@ export function NingYuanGame() {
 
 function RewardToast({ xp, points, insight }: { xp: number; points: number; insight: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ type: "spring", stiffness: 300 }}
-      className="glass-lg fixed left-1/2 top-14 z-40 -translate-x-1/2 rounded-lg px-4 py-2 text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-    >
-      <span className="text-xs text-white/90">+{xp} XP</span>
-      <span className="mx-2 text-zinc-600">·</span>
-      <span className="text-xs text-white/90">+{points} 积分</span>
-      <span className="mx-2 text-zinc-600">·</span>
-      <span className="text-xs text-white/90">+{insight} 洞察</span>
-    </motion.div>
+    <div className="fixed inset-0 pointer-events-none flex items-start justify-center z-40 pt-14">
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ type: "spring", stiffness: 300 }}
+        className="glass-lg pointer-events-auto rounded-lg px-4 py-2 text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+      >
+        <span className="text-xs text-white/90">+{xp} XP</span>
+        <span className="mx-2 text-zinc-600">·</span>
+        <span className="text-xs text-white/90">+{points} 积分</span>
+        <span className="mx-2 text-zinc-600">·</span>
+        <span className="text-xs text-white/90">+{insight} 洞察</span>
+      </motion.div>
+    </div>
   );
 }
 
