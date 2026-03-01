@@ -53,11 +53,11 @@ export async function GET() {
           .eq("user_id", profile.id)
           .eq("tier", tier)
           .single();
-        const resonance = 85 + (3 - i) * 4 + Math.floor(Math.random() * 3);
+        const resonance = 100 - i * 20 + Math.floor(Math.random() * 5);
         matches.push({
           soul_id: soulId,
           display_name: (profile.display_name as string) ?? null,
-          resonance: Math.min(99, resonance),
+          resonance: Math.min(100, Math.max(0, resonance)),
           stats: (ps?.stats as Record<string, number>) ?? undefined,
         });
       }

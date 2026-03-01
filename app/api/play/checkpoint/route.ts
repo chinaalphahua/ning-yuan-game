@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { STAT_KEYS, statsToVector, cosineSimilarity, toResonancePercent } from "@/lib/stats";
+import { STAT_KEYS, statsToVector, cosineSimilarity, resonancePercentFromRank, midRanksFromSortedDesc } from "@/lib/stats";
 import { awardXp } from "@/lib/growth/xp";
 import { addPoints } from "@/lib/growth/points";
 import { addInsight } from "@/lib/growth/insight";
@@ -101,9 +101,11 @@ export async function POST(request: Request) {
       // 装扮掉落失败不阻塞
     }
 
-    const matches = top3.map((m) => ({
+    const N = withSimilarity.length;
+    const midRanks = midRanksFromSortedDesc(withSimilarity.map((x) => x.similarity));
+    const matches = top3.map((m, i) => ({
       soul_id: m.soul_id,
-      resonance: toResonancePercent(m.similarity),
+      resonance: resonancePercentFromRank(midRanks[i], N),
     }));
 
     return NextResponse.json({ soul_id: mySoulId, matches, dropped_cosmic: droppedCosmetic });
