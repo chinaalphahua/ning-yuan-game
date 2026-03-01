@@ -35,22 +35,34 @@ export async function POST(request: Request) {
     if (!userId) return NextResponse.json({ error: "创建用户失败" }, { status: 500 });
 
     const finalSoulId = sid || `NO.NY-${1000 + Math.floor(Math.random() * 9000)}-A`;
-    const { error: profileError } = await supabase.from("profiles").insert({
+    const profilePayload: Record<string, unknown> = {
       id: userId,
       soul_id: finalSoulId,
       display_name: name,
-      equipped_hair_key: "hair_short_black",
-      equipped_face_key: "face_default",
-    });
+    };
+    // 先尝试带装扮（依赖 avatar_cosmetics 已 seed）
+    let profileError = (
+      await supabase.from("profiles").insert({
+        ...profilePayload,
+        equipped_hair_key: "hair_short_black",
+        equipped_face_key: "face_default",
+      })
+    ).error;
+    if (profileError) {
+      // 若失败（如 avatar_cosmetics 未 seed 导致外键失败），则不带装扮再试
+      const retry = await supabase.from("profiles").insert(profilePayload);
+      profileError = retry.error;
+    }
     if (profileError) {
       console.error("Register profile insert failed:", profileError);
       return NextResponse.json({ error: "创建档案失败" }, { status: 500 });
     }
 
-    await supabase.from("user_cosmetics").insert([
+    const { error: cosmeticsError } = await supabase.from("user_cosmetics").insert([
       { user_id: userId, cosmetic_key: "hair_short_black", quantity: 1 },
       { user_id: userId, cosmetic_key: "face_default", quantity: 1 },
     ]);
+    if (cosmeticsError) console.warn("Register user_cosmetics insert failed (non-blocking):", cosmeticsError);
 
     return NextResponse.json({ soul_id: finalSoulId });
   } catch (e) {
