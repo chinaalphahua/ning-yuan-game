@@ -443,6 +443,27 @@ export function NingYuanGame() {
       }
       setDisplayRatio(pickRatio());
 
+      if (user?.id) {
+        fetch("/api/play/choice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question_id: currentQuestion.id,
+            choice,
+          }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (
+              typeof d?.a_percent === "number" &&
+              typeof d?.b_percent === "number"
+            ) {
+              setDisplayRatio([d.a_percent, d.b_percent]);
+            }
+          })
+          .catch(() => {});
+      }
+
       setRewardToast({ xp: REWARD_XP, points: REWARD_POINTS, insight: REWARD_INSIGHT });
       setTimeout(() => setRewardToast(null), 1500);
 
