@@ -2022,7 +2022,7 @@ function OptionCard({
           animate={{ opacity: 1 }}
           className="absolute bottom-3 right-5 font-mono text-xs text-white/40 md:bottom-4 md:right-7"
         >
-          {ratio}%{choiceTotal != null && isActive ? <span className="ml-1 text-white/20">/{choiceTotal}人</span> : null}
+          {ratio}%
         </motion.span>
       )}
     </motion.div>
