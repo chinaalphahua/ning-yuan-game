@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
@@ -744,35 +745,60 @@ export default function ChatPage() {
         </main>
       </div>
 
-      <AnimatePresence>
-        {createGroupOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xl" onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)} aria-hidden />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-lg fixed left-1/2 top-1/2 z-40 w-[90%] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-2xl p-4" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-sm font-medium text-white mb-3">创建群聊</h3>
-              <input type="text" value={createGroupName} onChange={(e) => setCreateGroupName(e.target.value)} placeholder="群名称" className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-white/30 focus:outline-none mb-4" maxLength={50} />
-              <p className="text-[10px] text-white/50 mb-2">选择已连接的好友加入群聊（可选）</p>
-              <div className="max-h-[200px] overflow-y-auto space-y-1 mb-4">
-                {conversations.filter((c) => c.status === "accepted").length === 0 ? (
-                  <p className="text-xs text-white/50 py-2">暂无已连接好友</p>
-                ) : (
-                  conversations.filter((c) => c.status === "accepted").map((c) => (
-                    <label key={c.id} className="flex items-center gap-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer">
-                      <input type="checkbox" checked={createGroupSelectedIds.has(c.id)} onChange={() => setCreateGroupSelectedIds((prev) => { const next = new Set(prev); if (next.has(c.id)) next.delete(c.id); else next.add(c.id); return next; })} className="rounded border-white/30" />
-                      <span className="text-sm text-white/90">{c.other_display_name || c.other_soul_id}</span>
-                    </label>
-                  ))
-                )}
-              </div>
-              {createGroupError ? <p className="mb-3 text-xs text-red-400">{createGroupError}</p> : null}
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => !createGroupSubmitting && (setCreateGroupOpen(false), setCreateGroupError(""))} className="px-4 py-2 text-xs text-white/50 hover:text-white touch-manipulation">取消</button>
-                <button type="button" onClick={createGroup} disabled={createGroupSubmitting} className="rounded-lg border border-white/30 px-4 py-2 text-xs text-white/90 bg-white/10 hover:bg-white/15 disabled:opacity-50 touch-manipulation">{createGroupSubmitting ? "创建中…" : "创建"}</button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {createGroupOpen && typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          <motion.div
+            key="create-group-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-xl"
+            onClick={() => !createGroupSubmitting && setCreateGroupOpen(false)}
+            aria-hidden
+          />
+          <motion.div
+            key="create-group-modal"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-group-title"
+            className="glass-lg z-40 w-[90%] max-w-[360px] max-h-[85vh] overflow-y-auto rounded-2xl p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="create-group-title" className="text-sm font-medium text-white mb-3">创建群聊</h3>
+            <input
+              type="text"
+              value={createGroupName}
+              onChange={(e) => setCreateGroupName(e.target.value)}
+              placeholder="群名称"
+              className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-white/30 focus:outline-none mb-4"
+              maxLength={50}
+              autoFocus
+            />
+            <p className="text-[10px] text-white/50 mb-2">选择已连接的好友加入群聊（可选）</p>
+            <div className="max-h-[200px] overflow-y-auto space-y-1 mb-4">
+              {conversations.filter((c) => c.status === "accepted").length === 0 ? (
+                <p className="text-xs text-white/50 py-2">暂无已连接好友</p>
+              ) : (
+                conversations.filter((c) => c.status === "accepted").map((c) => (
+                  <label key={c.id} className="flex items-center gap-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer">
+                    <input type="checkbox" checked={createGroupSelectedIds.has(c.id)} onChange={() => setCreateGroupSelectedIds((prev) => { const next = new Set(prev); if (next.has(c.id)) next.delete(c.id); else next.add(c.id); return next; })} className="rounded border-white/30" />
+                    <span className="text-sm text-white/90">{c.other_display_name || c.other_soul_id}</span>
+                  </label>
+                ))
+              )}
+            </div>
+            {createGroupError ? <p className="mb-3 text-xs text-red-400">{createGroupError}</p> : null}
+            <div className="flex gap-2 justify-end">
+              <button type="button" onClick={() => !createGroupSubmitting && (setCreateGroupOpen(false), setCreateGroupError(""))} className="px-4 py-2 text-xs text-white/50 hover:text-white touch-manipulation">取消</button>
+              <button type="button" onClick={createGroup} disabled={createGroupSubmitting} className="rounded-lg border border-white/30 px-4 py-2 text-xs text-white/90 bg-white/10 hover:bg-white/15 disabled:opacity-50 touch-manipulation">{createGroupSubmitting ? "创建中…" : "创建"}</button>
+            </div>
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
